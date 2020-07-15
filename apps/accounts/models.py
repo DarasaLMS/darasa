@@ -1,6 +1,3 @@
-"""
-Users models
-"""
 import uuid
 from django.contrib.auth.models import (
     AbstractBaseUser,
