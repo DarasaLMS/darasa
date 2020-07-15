@@ -1,0 +1,15 @@
+{% load fontawesome_5 %}
+
+{% fontawesome_5_static %}
+
+<div class="avatar-upload">
+  <div class="avatar-edit">
+    <input type='file' id="imageUpload" name="{{ widget.name }}" accept=".png, .jpg, .jpeg" />
+    <label for="imageUpload"></label>
+  </div>
+  <div class="avatar-preview">
+    <div id="imagePreview"
+      style="background-image: url('{% if widget.value != None %}/media/{{ widget.value }}{% else %}/static/img/placeholders/user.png{% endif %}');">
+    </div>
+  </div>
+</div>

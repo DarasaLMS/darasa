@@ -1,0 +1,7 @@
+{% load thumbnail %}
+
+{% thumbnail picture '100x100' as im %}
+<img src="{{ im.url }}" alt="" style="width: 56px; height: 56px; border-radius: 100%;">
+{% empty %}
+<img src="/static/img/placeholders/user.png" alt="" style="width: 56px; height: 56px; border-radius: 100%;">
+{% endthumbnail %}
