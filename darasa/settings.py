@@ -32,6 +32,12 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 CORS_ORIGIN_WHITELIST = os.getenv("CORS_ORIGIN_WHITELIST").split(",")
 
+HOST = os.getenv("HOST")
+
+API_HOST = os.getenv("API_HOST")
+
+SITE_NAME = os.getenv("SITE_NAME", "Darasa LMS")
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -140,6 +146,11 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+
+# Currency
+
+DEFAULT_CURRENCY = os.getenv("DEFAULT_CURRENCY")
 
 
 # Static files (CSS, JavaScript, Images)

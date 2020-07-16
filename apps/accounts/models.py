@@ -87,6 +87,24 @@ class Student(models.Model):
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)
 
+    def active_classes(self):
+        pass
+
+    def pending_requests(self):
+        pass
+
+    def approved_requests(self):
+        pass
+
+    def rejected_requests(self):
+        pass
+
+    def billing_details(self):
+        pass
+
+    def payments(self):
+        pass
+
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -94,3 +112,19 @@ class Teacher(models.Model):
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)
 
+    @property
+    def duration(self):
+        pass
+
+    @property
+    def rating(self):
+        pass
+
+    def availability(self):
+        pass
+
+    def billing_details(self):
+        pass
+
+    def payments(self):
+        pass

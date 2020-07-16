@@ -41,8 +41,8 @@ SCHEMA_VIEW = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-admin.site.site_header = os.getenv("SITE_HEADER", "Darasa LMS")
-admin.site.site_title = os.getenv("SITE_TITLE", "Darasa LMS Admin")
+admin.site.site_header = os.getenv("SITE_NAME", "Darasa LMS")
+admin.site.site_title = os.getenv("SITE_NAME", "Darasa LMS")
 admin.site.site_url = os.getenv("SITE_URL", "http://localhost:8000/admin")
 admin.site.index_title = "Administration"
 
