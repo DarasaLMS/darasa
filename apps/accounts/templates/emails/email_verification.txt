@@ -1,0 +1,10 @@
+Hi {{ user.first_name }},
+
+Thanks for getting started with {{ site_name }}! We need a little more information to complete your registration, including confirmation of your email address.
+
+Click this link to confirm your email address: {{ verification_url }}
+
+If you have problems, please paste the above URL into your web browser.
+
+Thanks,
+The {{ site_name }} Team

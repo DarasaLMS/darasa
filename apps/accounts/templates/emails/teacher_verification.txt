@@ -1,0 +1,6 @@
+Dear {{ user.first_name }},
+
+Thank you for registering with {{ site_name }}.
+
+Regards,
+The {{ site_name }} Team
