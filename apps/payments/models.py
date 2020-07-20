@@ -30,6 +30,12 @@ class Billing(BaseModel):
     )
     is_active = models.BooleanField(default=False)
 
+    def __str__(self):
+        return "{} {}".format(self.address_1, self.user)
+
+    def payments(self):
+        return self.payment_set.all()
+
 
 class Payment(BaseModel):
     CHARGE_STATUS = (
@@ -55,6 +61,9 @@ class Payment(BaseModel):
     )
     extra_data = models.TextField(blank=True, default="")
 
+    def __str__(self):
+        return "{}".format(self.transaction_reference)
+
 
 class Rate(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -65,3 +74,6 @@ class Rate(BaseModel):
     price = MoneyField(
         max_digits=10, decimal_places=2, default_currency=settings.DEFAULT_CURRENCY
     )
+
+    def __str__(self):
+        return "{}: {}".format(self.course, self.price)

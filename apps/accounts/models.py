@@ -1,15 +1,22 @@
 import uuid
+import logging
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
 from django.db import models
+from django.db.models import Avg
 from django.conf import settings
 from django.core import validators
 from django.core.mail import EmailMultiAlternatives
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from django.template.loader import get_template
 from sorl.thumbnail import ImageField
 from django.utils.translation import ugettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 EMAIL_VERIFICATION_PLAINTEXT = get_template("emails/email_verification.txt")
 EMAIL_VERIFICATION_HTMLY = get_template("emails/email_verification.html")
@@ -169,6 +176,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
+    def billing_details(self):
+        return self.billing_set.all().first()
+
+    def payments(self):
+        return self.billing_details().payments()
 
 @receiver(post_save, sender=User)
 def send_verify_on_creation(sender, instance, created, **kwargs):
@@ -183,22 +195,16 @@ class Student(models.Model):
         return "{} {}".format(self.user.first_name, self.user.last_name)
 
     def active_classes(self):
-        pass
+        return self.classroom_set.all()
 
     def pending_requests(self):
-        pass
+        return self.request_set.all().filter(status="pending")
 
     def approved_requests(self):
-        pass
+        return self.request_set.all().filter(status="approved")
 
     def rejected_requests(self):
-        pass
-
-    def billing_details(self):
-        pass
-
-    def payments(self):
-        pass
+        return self.request_set.all().filter(status="rejected")
 
 
 class Teacher(models.Model):
@@ -231,26 +237,31 @@ class Teacher(models.Model):
             update_fields=update_fields,
         )
 
-    @property
     def courses(self);
-        pass
+        return self.course_set.all()
 
-    @property
+    def classrooms(self):
+        return self.classroom_set.all()
+
     def duration(self):
-        pass
+        total_duration = 0
+        for classroom in self.classrooms():
+            if classroom.duration():
+                total_duration += classroom.duration()
 
-    @property
+        return total_duration
+
+    def feedback(self):
+        return self.feedback_set.all()
+
     def rating(self):
-        pass
+        return self.feedback.aggregate(Avg("rating"))
 
-    def availability(self):
-        pass
-
-    def billing_details(self):
-        pass
-
-    def payments(self):
-        pass
+    def availability(self, datetime):
+        return not self.classrooms.filter(
+            start_class_at__gte=datetime,
+            finish_class_at__lte=datetime
+        ).exists()
 
     def send_verified_email(self):
         subject, from_email, to = (

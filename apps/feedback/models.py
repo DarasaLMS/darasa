@@ -24,3 +24,6 @@ class Feedback(models.Model):
         unique_together = [["from_user", "to_user", "classroom"]]
         verbose_name = "Feedback"
         verbose_name_plural = "Feedback"
+
+    def __str__(self):
+        return "{} {}".format(self.from_user, self.rating)

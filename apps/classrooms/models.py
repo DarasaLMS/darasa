@@ -54,15 +54,19 @@ class Classroom(BaseModel):
     )
     students = models.ManyToManyField(Student)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
+    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True)
 
     attendee_password = models.CharField(max_length=120, null=True)
     moderator_password = models.CharField(max_length=120, null=True)
+
+    start_class_at = models.DateTimeField(null=True, blank=True)
+    finish_class_at = models.DateTimeField(null=True, blank=True)
 
     started_class = models.BooleanField(default=False)
     starting_class = models.BooleanField(default=False)
     started_class_at = models.DateTimeField(null=True, blank=True)
 
-    finsihed_class = models.BooleanField(default=False)
+    finished_class = models.BooleanField(default=False)
     finished_class_at = models.DateTimeField(null=True, blank=True)
 
     max_capacity = models.PositiveIntegerField(default=50)
@@ -70,7 +74,6 @@ class Classroom(BaseModel):
     def __str__(self):
         return self.name
 
-    @property
     def duration(self):
         if self.started_class_at:
             if self.finished_class_at:
