@@ -17,6 +17,7 @@ class UserAdmin(UserAdmin):
         "last_name",
         "render_picture",
         "phone",
+        "user_type",
         "is_staff",
         "is_active",
     )
@@ -32,6 +33,7 @@ class UserAdmin(UserAdmin):
                     "phone",
                     "gender",
                     "picture",
+                    "user_type",
                     "is_staff",
                     "is_active",
                 )
@@ -51,6 +53,7 @@ class UserAdmin(UserAdmin):
                     "phone",
                     "gender",
                     "picture",
+                    "user_type",
                     "is_staff",
                     "is_active",
                 )
