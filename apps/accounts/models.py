@@ -58,6 +58,7 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+
 class VerificationToken(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -74,6 +75,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     User model represents a person interacting with the system
     """
+
     USER_TYPE = (
         (0, "Staff"),
         (1, "Student"),
@@ -96,7 +98,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
     user_type = models.IntegerField(_("User type"), choices=USER_TYPE, default=1)
-    accepted_terms = models.BooleanField(_("Accepted terms and conditions"), default=False)
+    accepted_terms = models.BooleanField(
+        _("Accepted terms and conditions"), default=False
+    )
     is_staff = models.BooleanField(_("Staff"), default=False)
     is_active = models.BooleanField(_("Active"), default=True)
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
@@ -116,7 +120,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().__init__(*args, **kwargs)
         self.__email = self.email
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
         if self.__email.lower() != self.email.lower():
             self.email_verified = False
             self.send_verification_email()
@@ -138,8 +144,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             )
             data = {
                 "user": self,
-                "verification_url": "{}/account/verify?token={}".format(settings.HOST, str(token.token)),
-                "site_name": settings.SITE_NAME
+                "verification_url": "{}/account/verify?token={}".format(
+                    settings.HOST, str(token.token)
+                ),
+                "site_name": settings.SITE_NAME,
             }
             text_content = EMAIL_VERIFICATION_PLAINTEXT.render(data)
             html_content = EMAIL_VERIFICATION_HTMLY.render(data)
@@ -167,8 +175,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
         data = {
             "user": self,
-            "reset_url": "{}/account/password-reset/{}".format(settings.HOST, token.token),
-            "site_name": settings.SITE_NAME
+            "reset_url": "{}/account/password-reset/{}".format(
+                settings.HOST, token.token
+            ),
+            "site_name": settings.SITE_NAME,
         }
         text_content = PASSWORD_RESET_PLAINTEXT.render(data)
         html_content = PASSWORD_RESET_HTMLY.render(data)
@@ -181,6 +191,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def payments(self):
         return self.billing_details().payments()
+
 
 @receiver(post_save, sender=User)
 def send_verify_on_creation(sender, instance, created, **kwargs):
@@ -212,9 +223,7 @@ class Teacher(models.Model):
     bio = models.TextField()
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
-        upload_to="verifications/%Y/%m",
-        null=True,
-        blank=True,
+        upload_to="verifications/%Y/%m", null=True, blank=True,
     )
 
     __was_verified = None
@@ -226,7 +235,9 @@ class Teacher(models.Model):
         super(Teacher, self).__init__(*args, **kwargs)
         self.__was_verified = self.verified
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
         if self.__was_verified != self.verified:
             self.send_verified_email()
 
@@ -237,7 +248,7 @@ class Teacher(models.Model):
             update_fields=update_fields,
         )
 
-    def courses(self);
+    def courses(self):
         return self.course_set.all()
 
     def classrooms(self):
@@ -259,8 +270,7 @@ class Teacher(models.Model):
 
     def availability(self, datetime):
         return not self.classrooms.filter(
-            start_class_at__gte=datetime,
-            finish_class_at__lte=datetime
+            start_class_at__gte=datetime, finish_class_at__lte=datetime
         ).exists()
 
     def send_verified_email(self):
@@ -272,13 +282,14 @@ class Teacher(models.Model):
         data = {
             "user": self.user,
             "login_url": settings.HOST,
-            "site_name": settings.SITE_NAME.
+            "site_name": settings.SITE_NAME,
         }
         text_content = TEACHER_VERIFICATION_PLAINTEXT.render(data)
         html_content = TEACHER_VERIFICATION_HTMLY.render(data)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
+
 
 @receiver(pre_save, sender=Teacher)
 def delete_document_if_verified(sender, instance, **kwargs):
