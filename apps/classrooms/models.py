@@ -24,9 +24,26 @@ from apps.accounts.models import User, Student, Teacher
 
 class Course(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256)
+    title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
     teachers = models.ManyToManyField(Teacher)
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def topics(self):
+        return self.topic_set.all()
+
+
+class Topic(BaseModel):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=256)
+    description = models.TextField(blank=True)
+    teachers = models.ManyToManyField(Teacher)
+
+    def __str__(self):
+        return self.title
 
 
 class Classroom(BaseModel):
@@ -49,6 +66,9 @@ class Classroom(BaseModel):
     finished_class_at = models.DateTimeField(null=True, blank=True)
 
     max_capacity = models.PositiveIntegerField(default=50)
+
+    def __str__(self):
+        return self.name
 
     @property
     def duration(self):
@@ -156,3 +176,6 @@ class Request(BaseModel):
 
     class Meta:
         unique_together = [["student", "classroom"]]
+
+    def __str__(self):
+        return "{} requested class {}".format(self.student, self.classroom)
