@@ -14,14 +14,16 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "gender",
             "email",
+            "email_verified",
             "phone",
             "picture",
             "user_type",
+            "accepted_terms",
             "is_active",
             "date_joined",
             "last_login",
         )
-        read_only_fields = ("date_joined", "last_login")
+        read_only_fields = ("date_joined", "last_login", "email_verified")
 
 
 class LoginSerializer(TokenObtainPairSerializer):
