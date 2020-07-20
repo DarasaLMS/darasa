@@ -1,6 +1,3 @@
-from channels.routing import ProtocolTypeRouter, URLRouter
-import apps.roulette.routing
+from channels.routing import ProtocolTypeRouter
 
-application = ProtocolTypeRouter(
-    {"http": URLRouter(apps.roulette.routing.urlpatterns),}
-)
+application = ProtocolTypeRouter({})
