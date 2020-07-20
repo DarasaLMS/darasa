@@ -73,24 +73,25 @@ class User(AbstractBaseUser, PermissionsMixin):
         (2, "Teacher"),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField("first name", max_length=24, blank=True)
-    last_name = models.CharField("last name", max_length=24, blank=True)
-    nickname = models.CharField("nickname", max_length=24, blank=True)
+    first_name = models.CharField(_("First name"), max_length=24, blank=True)
+    last_name = models.CharField(_("Last name"), max_length=24, blank=True)
+    nickname = models.CharField(_("Nickname"), max_length=24, blank=True)
     gender = models.CharField(
-        "gender",
+        _("Gender"),
         max_length=6,
         blank=True,
-        choices=(("male", "Male"), ("female", "Female")),
+        choices=(("M", _("Male")), ("F", _("Female"))),
     )
-    email = models.EmailField("email address", unique=True)
+    email = models.EmailField(_("Email address"), unique=True)
     email_verified = models.BooleanField(_("Email verified"), default=False)
-    phone = models.CharField("phone number", max_length=16, unique=True)
+    phone = models.CharField(_("Phone number"), max_length=16, unique=True)
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
-    user_type = models.IntegerField(choices=USER_TYPE, default=1)
-    is_staff = models.BooleanField("Staff status", default=False)
-    is_active = models.BooleanField("Active status", default=True)
+    user_type = models.IntegerField(_("User type"), choices=USER_TYPE, default=1)
+    accepted_terms = models.BooleanField(_("Accepted terms and conditions"), default=False)
+    is_staff = models.BooleanField(_("Staff"), default=False)
+    is_active = models.BooleanField(_("Active"), default=True)
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
 
