@@ -1,0 +1,10 @@
+Hi {{ first_name }},
+
+You have started this classroom {{ classroom }}
+
+You can join and moderate it using this link: <a href="{{ meeting_url }}">{{ meeting_url }}</a>
+
+If you have problems, please paste the above URL into your web browser.
+
+Thanks,
+The {{ site_name }} Team

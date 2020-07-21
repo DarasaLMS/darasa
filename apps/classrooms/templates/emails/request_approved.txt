@@ -1,0 +1,10 @@
+Hi {{ first_name }},
+
+Your request to join classroom {{ classroom }} has been approved.
+
+You can join using this link: <a href="{{ meeting_url }}">{{ meeting_url }}</a>
+
+If you have problems, please paste the above URL into your web browser.
+
+Thanks,
+The {{ site_name }} Team
