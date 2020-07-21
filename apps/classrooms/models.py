@@ -27,7 +27,7 @@ from apps.core.bbb import (
     join_meeting_url,
 )
 from apps.accounts.models import User, Student, Teacher
-from .tasks import send_email
+from apps.core.tasks import send_email
 
 CLASSROOM_MODERATOR_TXT = get_template("emails/classroom_moderator.txt")
 CLASSROOM_MODERATOR_HTML = get_template("emails/classroom_moderator.txt")

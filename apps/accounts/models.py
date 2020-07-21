@@ -15,6 +15,7 @@ from django.dispatch import receiver
 from django.template.loader import get_template
 from sorl.thumbnail import ImageField
 from django.utils.translation import ugettext_lazy as _
+from apps.core.tasks import send_email
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name",]
+    REQUIRED_FIELDS = [
+        "first_name",
+    ]
     objects = UserManager()
 
     __email = None
@@ -137,13 +140,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def send_verification_email(self):
         if not self.email_verified:
             token = VerificationToken.objects.get_or_create(user=self)[0]
-            subject, from_email, to = (
+            subject, from_email, to_email = (
                 "Welcome to {}".format(settings.SITE_NAME),
                 settings.DEFAULT_FROM_EMAIL,
                 self.email,
             )
             data = {
-                "user": self,
+                "first_name": self.first_name,
                 "verification_url": "{}/account/verify?token={}".format(
                     settings.HOST, str(token.token)
                 ),
@@ -151,9 +154,9 @@ class User(AbstractBaseUser, PermissionsMixin):
             }
             text_content = EMAIL_VERIFICATION_TXT.render(data)
             html_content = EMAIL_VERIFICATION_HTML.render(data)
-            msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
+            send_email(
+                subject, text_content, to_email, html_content=html_content
+            ).delay()
 
     def check_email_verification(self, check_token):
         if str(self.verificationtoken.token) == str(check_token):
@@ -168,13 +171,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         PasswordResetToken.objects.filter(user=self).delete()
         token = PasswordResetToken(user=self)
         token.save()
-        subject, from_email, to = (
+        subject, from_email, to_email = (
             "Reset password",
             settings.DEFAULT_FROM_EMAIL,
             self.email,
         )
         data = {
-            "user": self,
+            "first_name": self.first_name,
+            "email": self.email,
             "reset_url": "{}/account/password-reset/{}".format(
                 settings.HOST, token.token
             ),
@@ -182,9 +186,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         }
         text_content = PASSWORD_RESET_TXT.render(data)
         html_content = PASSWORD_RESET_HTML.render(data)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        send_email(subject, text_content, to_email, html_content=html_content).delay()
 
     def billing_details(self):
         return self.billing_set.all().first()
@@ -273,21 +275,19 @@ class Teacher(models.Model):
         ).exists()
 
     def send_verified_email(self):
-        subject, from_email, to = (
+        subject, from_email, to_email = (
             "Verification for {}".format(settings.SITE_NAME),
             settings.DEFAULT_FROM_EMAIL,
             self.user.email,
         )
         data = {
-            "user": self.user,
+            "first_name": self.user.first_name,
             "login_url": settings.HOST,
             "site_name": settings.SITE_NAME,
         }
         text_content = TEACHER_VERIFICATION_TXT.render(data)
         html_content = TEACHER_VERIFICATION_HTML.render(data)
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        send_email(subject, text_content, to_email, html_content=html_content).delay()
 
 
 @receiver(pre_save, sender=Teacher)
