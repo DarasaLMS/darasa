@@ -1,4 +1,4 @@
-Dear {{ user.first_name }},
+Dear {{ first_name }},
 
 Thank you for registering with {{ site_name }}.
 

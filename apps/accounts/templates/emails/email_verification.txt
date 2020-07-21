@@ -1,4 +1,4 @@
-Hi {{ user.first_name }},
+Hi {{ first_name }},
 
 Thanks for getting started with {{ site_name }}! We need a little more information to complete your registration, including confirmation of your email address.
 
