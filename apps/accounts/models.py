@@ -18,14 +18,14 @@ from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
-EMAIL_VERIFICATION_PLAINTEXT = get_template("emails/email_verification.txt")
-EMAIL_VERIFICATION_HTMLY = get_template("emails/email_verification.html")
+EMAIL_VERIFICATION_TXT = get_template("emails/email_verification.txt")
+EMAIL_VERIFICATION_HTML = get_template("emails/email_verification.html")
 
-PASSWORD_RESET_PLAINTEXT = get_template("emails/password_reset.txt")
-PASSWORD_RESET_HTMLY = get_template("emails/password_reset.html")
+PASSWORD_RESET_TXT = get_template("emails/password_reset.txt")
+PASSWORD_RESET_HTML = get_template("emails/password_reset.html")
 
-TEACHER_VERIFICATION_PLAINTEXT = get_template("emails/teacher_verification.txt")
-TEACHER_VERIFICATION_HTMLY = get_template("emails/teacher_verification.html")
+TEACHER_VERIFICATION_TXT = get_template("emails/teacher_verification.txt")
+TEACHER_VERIFICATION_HTML = get_template("emails/teacher_verification.html")
 
 
 class UserManager(BaseUserManager):
@@ -149,8 +149,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                 ),
                 "site_name": settings.SITE_NAME,
             }
-            text_content = EMAIL_VERIFICATION_PLAINTEXT.render(data)
-            html_content = EMAIL_VERIFICATION_HTMLY.render(data)
+            text_content = EMAIL_VERIFICATION_TXT.render(data)
+            html_content = EMAIL_VERIFICATION_HTML.render(data)
             msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
             msg.attach_alternative(html_content, "text/html")
             msg.send()
@@ -180,8 +180,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             ),
             "site_name": settings.SITE_NAME,
         }
-        text_content = PASSWORD_RESET_PLAINTEXT.render(data)
-        html_content = PASSWORD_RESET_HTMLY.render(data)
+        text_content = PASSWORD_RESET_TXT.render(data)
+        html_content = PASSWORD_RESET_HTML.render(data)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
@@ -257,8 +257,7 @@ class Teacher(models.Model):
     def duration(self):
         total_duration = 0
         for classroom in self.classrooms():
-            if classroom.duration():
-                total_duration += classroom.duration()
+            total_duration += classroom.estimate_duration()
 
         return total_duration
 
@@ -284,8 +283,8 @@ class Teacher(models.Model):
             "login_url": settings.HOST,
             "site_name": settings.SITE_NAME,
         }
-        text_content = TEACHER_VERIFICATION_PLAINTEXT.render(data)
-        html_content = TEACHER_VERIFICATION_HTMLY.render(data)
+        text_content = TEACHER_VERIFICATION_TXT.render(data)
+        html_content = TEACHER_VERIFICATION_HTML.render(data)
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
