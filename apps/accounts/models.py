@@ -147,8 +147,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             )
             data = {
                 "first_name": self.first_name,
-                "verification_url": "{}/account/verify?token={}".format(
-                    settings.HOST, str(token.token)
+                "verification_url": "{}/accounts/verify/{}".format(
+                    settings.API_HOST, str(token.token)
                 ),
                 "site_name": settings.SITE_NAME,
             }
@@ -248,12 +248,15 @@ class Teacher(models.Model):
             update_fields=update_fields,
         )
 
+    @property
     def courses(self):
         return self.course_set.all()
 
+    @property
     def classrooms(self):
         return self.classroom_set.all()
 
+    @property
     def duration(self):
         total_duration = 0
         for classroom in self.classrooms():
@@ -261,9 +264,11 @@ class Teacher(models.Model):
 
         return total_duration
 
+    @property
     def feedback(self):
         return self.feedback_set.all()
 
+    @property
     def rating(self):
         return self.feedback.aggregate(Avg("rating"))
 
