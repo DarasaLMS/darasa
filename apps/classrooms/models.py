@@ -1,24 +1,12 @@
-import datetime
-import hashlib
-import random
 import time
 import uuid
-import requests
-import xml.etree.ElementTree as ET
-from datetime import timedelta
-from urllib.parse import urlencode
-from urllib.request import urlopen
-from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
+from django.db.models.signals import post_save
+from django.conf import settings
 from django.dispatch import receiver
-from djmoney.models.fields import MoneyField
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
-from moneyed import Money
 from apps.core.models import BaseModel
 from apps.core.bbb import (
     get_meeting_info,
