@@ -2,11 +2,12 @@ import uuid
 from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
-from djmoney.models.fields import MoneyField
 from moneyed import Money
+from djmoney.models.fields import MoneyField
+from django_countries.fields import CountryField
 from apps.core.models import BaseModel
 from apps.accounts.models import User
-from apps.classrooms.models import Classroom, Course
+from apps.classrooms.models import Classroom, Course, Topic
 
 
 class Billing(BaseModel):
@@ -15,9 +16,9 @@ class Billing(BaseModel):
     address_1 = models.CharField(max_length=256, blank=True)
     address_2 = models.CharField(max_length=256, blank=True)
     city = models.CharField(max_length=256, blank=True)
+    state = models.CharField(max_length=250, blank=True)
     postal_code = models.CharField(max_length=256, blank=True)
-    country_code = models.CharField(max_length=2, blank=True)
-    country_area = models.CharField(max_length=256, blank=True)
+    country = CountryField(blank=True, null=True)
 
     cc_first_digits = models.CharField(max_length=6, blank=True, default="")
     cc_last_digits = models.CharField(max_length=4, blank=True, default="")
@@ -28,10 +29,12 @@ class Billing(BaseModel):
     cc_exp_year = models.PositiveIntegerField(
         validators=[MinValueValidator(1000)], null=True, blank=True
     )
-    is_active = models.BooleanField(default=False)
+    active = models.BooleanField(default=False)
 
     def __str__(self):
-        return "{} {}".format(self.address_1, self.user)
+        return "{} : {} {} {} {}".format(
+            self.user, self.address_1, self.postal_code, self.city, self.country
+        )
 
     def payments(self):
         return self.payment_set.all()
@@ -71,6 +74,7 @@ class Rate(BaseModel):
         Classroom, on_delete=models.CASCADE, null=True, blank=True
     )
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, null=True, blank=True)
     price = MoneyField(
         max_digits=10, decimal_places=2, default_currency=settings.DEFAULT_CURRENCY
     )
