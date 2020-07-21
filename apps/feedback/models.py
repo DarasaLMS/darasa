@@ -4,9 +4,10 @@ from django.db import models
 from apps.core.models import BaseModel
 from apps.accounts.models import User
 from apps.classrooms.models import Classroom
+from apps.core.models import BaseModel
 
 
-class Feedback(models.Model):
+class Feedback(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     from_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="from_user_feedback"
