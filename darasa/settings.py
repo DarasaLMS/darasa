@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "djmoney",
     "sorl.thumbnail",
     "django_celery_beat",
+    "django_countries",
     "apps.accounts",
     "apps.classrooms",
     "apps.feedback",
