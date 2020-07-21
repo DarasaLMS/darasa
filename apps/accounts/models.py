@@ -154,9 +154,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             }
             text_content = EMAIL_VERIFICATION_TXT.render(data)
             html_content = EMAIL_VERIFICATION_HTML.render(data)
-            send_email(
-                subject, text_content, to_email, html_content=html_content
-            ).delay()
+            send_email.delay(subject, text_content, to_email, html_content=html_content)
 
     def check_email_verification(self, check_token):
         if str(self.verificationtoken.token) == str(check_token):
@@ -186,7 +184,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         }
         text_content = PASSWORD_RESET_TXT.render(data)
         html_content = PASSWORD_RESET_HTML.render(data)
-        send_email(subject, text_content, to_email, html_content=html_content).delay()
+        send_email.delay(subject, text_content, to_email, html_content=html_content)
 
     def billing_details(self):
         return self.billing_set.all().first()
@@ -287,7 +285,7 @@ class Teacher(models.Model):
         }
         text_content = TEACHER_VERIFICATION_TXT.render(data)
         html_content = TEACHER_VERIFICATION_HTML.render(data)
-        send_email(subject, text_content, to_email, html_content=html_content).delay()
+        send_email.delay(subject, text_content, to_email, html_content=html_content)
 
 
 @receiver(pre_save, sender=Teacher)
