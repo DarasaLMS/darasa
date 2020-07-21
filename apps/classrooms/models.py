@@ -253,7 +253,6 @@ class Request(BaseModel):
     )
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     status = models.CharField(max_length=16, choices=STATUS, default="pending")
-    cancelled = models.BooleanField(default=False)
 
     __status = None
 
