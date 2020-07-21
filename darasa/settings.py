@@ -51,11 +51,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "drf_yasg",
-    "channels",
     "corsheaders",
     "djmoney",
     "sorl.thumbnail",
-    "django_countries",
     "django_celery_beat",
     "apps.accounts",
     "apps.classrooms",
@@ -95,7 +93,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "darasa.wsgi.application"
 
-ASGI_APPLICATION = "darasa.routing.application"
+ASGI_APPLICATION = "darasa.asgi.application"
 
 
 # Database
@@ -178,8 +176,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Big Blue Button Config
 
-BBB_SHARED_SECRET = os.getenv("BBB_SHARED_SECRET")
+BBB_SECRET = os.getenv("BBB_SECRET")
 BBB_URL = os.getenv("BBB_URL")
+BBB_LOGOUT_URL = os.getenv("BBB_LOGOUT_URL")
 
 
 # Email config
@@ -278,4 +277,5 @@ LOGGING = {
 # Celery
 
 CELERY_APP = "darasa.celery"
-CELERY_BROKER_URL = "amqp://rabbitmq"
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_BROKER", "redis://redis:6379/0")
