@@ -115,7 +115,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    user_type = models.IntegerField(_("User type"), choices=USER_TYPE, default=1)
+    user_type = models.IntegerField(_("Role"), choices=USER_TYPE, default=1)
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
@@ -139,6 +139,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
+        if self.user_type == self.STAFF:
+            self.is_staff = True
+
         if self.__email.lower() != self.email.lower():
             self.email_verified = False
             self.send_verification_email()
