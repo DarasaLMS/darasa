@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "fontawesome_5",
     "rest_framework",
     "django_filters",
     "drf_yasg",
