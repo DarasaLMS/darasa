@@ -1,40 +1,29 @@
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-from drf_base64.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
 from apps.accounts.models import User, Student, Teacher
 
 
-class DynamicFieldsModelSerializer(ModelSerializer):
-    """
-    A ModelSerializer that takes an additional `fields` argument that
-    controls which fields should be displayed.
-    """
-
-    def __init__(self, *args, **kwargs):
-        # Don't pass the 'fields' arg up to the superclass
-        fields = kwargs.pop("fields", None)
-
-        # Instantiate the superclass normally
-        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
-
-        if fields is not None:
-            # Drop any fields that are not specified in the `fields` argument.
-            allowed = set(fields)
-            existing = set(self.fields)
-            for field_name in existing - allowed:
-                self.fields.pop(field_name)
-
-
 class StudentSerializer(serializers.ModelSerializer):
+    active_classes = serializers.ReadOnlyField()
+    pending_requests = serializers.ReadOnlyField()
+    approved_requests = serializers.ReadOnlyField()
+    rejected_requests = serializers.ReadOnlyField()
+
     class Meta:
         model = Student
-        fields = "__all__"
+        fields = [
+            "user",
+            "active_classes",
+            "pending_requests",
+            "approved_requests",
+            "rejected_requests",
+        ]
 
 
-class TeacherSerializer(DynamicFieldsModelSerializer):
+class TeacherSerializer(serializers.ModelSerializer):
     courses = serializers.ReadOnlyField()
     classrooms = serializers.ReadOnlyField()
     duration = serializers.ReadOnlyField()
@@ -44,6 +33,7 @@ class TeacherSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Teacher
         fields = [
+            "user",
             "verification_file",
             "verified",
             "bio",
@@ -56,30 +46,57 @@ class TeacherSerializer(DynamicFieldsModelSerializer):
         read_only_fields = ["verified"]
 
 
-class CurrentUserSerializer(serializers.ModelSerializer):
+class MiniTeacherSerializer(serializers.ModelSerializer):
+    courses = serializers.ReadOnlyField()
+    classrooms = serializers.ReadOnlyField()
+    duration = serializers.ReadOnlyField()
+    feedback = serializers.ReadOnlyField()
+    rating = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Teacher
+        fields = [
+            "user",
+            "bio",
+            "courses",
+            "classrooms",
+            "duration",
+            "feedback",
+            "rating",
+        ]
+
+
+class UserSerializer(serializers.ModelSerializer):
     student = StudentSerializer(required=False, allow_null=True)
     teacher = TeacherSerializer(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = [
+        fields = (
             "id",
             "first_name",
             "last_name",
+            "nickname",
             "gender",
             "email",
             "email_verified",
             "phone",
             "picture",
-            "user_type",
             "accepted_terms",
+            "is_staff",
             "is_active",
             "date_joined",
             "last_login",
             "student",
             "teacher",
-        ]
-        read_only_fields = ["email_verified"]
+        )
+        read_only_fields = (
+            "email_verified",
+            "is_staff",
+            "is_active",
+            "date_joined",
+            "last_login",
+        )
         extra_kwargs = {
             "password": {"write_only": True},
         }
@@ -115,7 +132,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             data = validated_data.pop("student")
             if not data:
                 Student.objects.filter(user=instance).delete()
-
             else:
                 Student.objects.update_or_create(user=instance, defaults=data)
 
@@ -123,15 +139,14 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             data = validated_data.pop("teacher")
             if not data:
                 Teacher.objects.filter(user=instance).delete()
-
             else:
-                teacher, _ = teacher.objects.get_or_create(user=instance)
+                teacher, _ = Teacher.objects.get_or_create(user=instance)
                 if data.get("verification_file"):
                     teacher.verification_file = data.get("verification_file")
 
                 teacher.save()
 
-        return super(CurrentUserSerializer, self).update(instance, validated_data)
+        return super(UserSerializer, self).update(instance, validated_data)
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -139,37 +154,26 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     _("User with this mail already exists!")
                 )
+
         return value
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Serializes fields from/to the User model"""
-
-    student = StudentSerializer()
-    teacher = TeacherSerializer(
-        fields=["bio", "courses", "classrooms", "duration", "feedback", "rating"]
-    )
-
+class MiniUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
             "id",
             "first_name",
             "last_name",
+            "nickname",
             "gender",
             "email",
-            "email_verified",
             "phone",
             "picture",
-            "user_type",
-            "accepted_terms",
+            "is_staff",
             "is_active",
-            "date_joined",
-            "last_login",
-            "student",
-            "teacher",
         )
-        read_only_fields = ("date_joined", "last_login", "email_verified")
+        read_only_fields = ("is_staff", "is_active")
 
 
 class LoginSerializer(TokenObtainPairSerializer):
@@ -203,4 +207,4 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
     def save(self):
         user = User.objects.get(email=self.validated_data["email"])
-        user.send_reset_mail()
+        user.send_password_reset_email()

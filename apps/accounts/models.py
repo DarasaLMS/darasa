@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import Avg
 from django.conf import settings
 from django.core import validators
-from django.core.mail import EmailMultiAlternatives
+from django.utils.crypto import get_random_string
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import get_template
@@ -27,6 +27,10 @@ PASSWORD_RESET_HTML = get_template("emails/password_reset.html")
 
 TEACHER_VERIFICATION_TXT = get_template("emails/teacher_verification.txt")
 TEACHER_VERIFICATION_HTML = get_template("emails/teacher_verification.html")
+
+
+def get_unique_random_string(length=32):
+    return get_random_string(length=length)
 
 
 class UserManager(BaseUserManager):
@@ -62,13 +66,17 @@ class UserManager(BaseUserManager):
 
 class VerificationToken(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    token = models.CharField(
+        max_length=32, default=get_unique_random_string, editable=False, unique=True
+    )
     created = models.DateTimeField(_("Created"), auto_now_add=True)
 
 
 class PasswordResetToken(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    token = models.CharField(
+        max_length=32, default=get_unique_random_string, editable=False, unique=True
+    )
     created = models.DateTimeField(_("Created"), auto_now_add=True)
 
 
@@ -77,11 +85,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     User model represents a person interacting with the system
     """
 
-    USER_TYPE = (
-        (0, "Staff"),
-        (1, "Student"),
-        (2, "Teacher"),
-    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     first_name = models.CharField(_("First name"), max_length=24, blank=True)
     last_name = models.CharField(_("Last name"), max_length=24, blank=True)
@@ -98,12 +101,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
-    user_type = models.IntegerField(_("User type"), choices=USER_TYPE, default=1)
     accepted_terms = models.BooleanField(
         _("Accepted terms and conditions"), default=False
     )
-    is_staff = models.BooleanField(_("Staff"), default=False)
-    is_active = models.BooleanField(_("Active"), default=True)
+
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_student = models.BooleanField(default=True)
+    is_teacher = models.BooleanField(default=True)
+
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
 
@@ -140,11 +146,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def send_verification_email(self):
         if not self.email_verified:
             token = VerificationToken.objects.get_or_create(user=self)[0]
-            subject, from_email, to_email = (
-                "Welcome to {}".format(settings.SITE_NAME),
-                settings.DEFAULT_FROM_EMAIL,
-                self.email,
-            )
+            subject = _("Welcome to") + " {}".format(settings.SITE_NAME)
+            to_email = self.email
             data = {
                 "first_name": self.first_name,
                 "verification_url": "{}/accounts/verify/{}".format(
@@ -156,8 +159,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             html_content = EMAIL_VERIFICATION_HTML.render(data)
             send_email.delay(subject, text_content, to_email, html_content=html_content)
 
-    def check_email_verification(self, check_token):
-        if str(self.verificationtoken.token) == str(check_token):
+    def check_email_verification(self, token):
+        if not hasattr(self, "verificationtoken"):
+            return False
+
+        if str(self.verificationtoken.token) == str(token):
             self.email_verified = True
             self.verificationtoken.delete()
             self.save()
@@ -165,20 +171,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         else:
             return False
 
-    def send_reset_mail(self):
+    def send_password_reset_email(self):
         PasswordResetToken.objects.filter(user=self).delete()
-        token = PasswordResetToken(user=self)
-        token.save()
-        subject, from_email, to_email = (
-            "Reset password",
-            settings.DEFAULT_FROM_EMAIL,
-            self.email,
-        )
+        pwd_reset_token = PasswordResetToken(user=self)
+        pwd_reset_token.save()
+        subject = _("Reset password")
+        to_email = self.email
         data = {
             "first_name": self.first_name,
             "email": self.email,
-            "reset_url": "{}/account/password-reset/{}".format(
-                settings.HOST, token.token
+            "reset_url": "{}/accounts/password/reset/?token={}".format(
+                settings.HOST, pwd_reset_token.token
             ),
             "site_name": settings.SITE_NAME,
         }
@@ -186,15 +189,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         html_content = PASSWORD_RESET_HTML.render(data)
         send_email.delay(subject, text_content, to_email, html_content=html_content)
 
-    def billing_details(self):
-        return self.billing_set.all().first()
-
-    def payments(self):
-        return self.billing_details().payments()
-
 
 @receiver(post_save, sender=User)
-def send_verify_on_creation(sender, instance, created, **kwargs):
+def send_verification_email_on_account_creation(sender, instance, created, **kwargs):
     if created:
         instance.send_verification_email()
 
@@ -205,15 +202,19 @@ class Student(models.Model):
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)
 
+    @property
     def active_classes(self):
         return self.classroom_set.all()
 
+    @property
     def pending_requests(self):
         return self.request_set.all().filter(status="pending")
 
+    @property
     def approved_requests(self):
         return self.request_set.all().filter(status="approved")
 
+    @property
     def rejected_requests(self):
         return self.request_set.all().filter(status="rejected")
 

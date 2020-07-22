@@ -1,46 +1,35 @@
-from django.urls import path, re_path
+from django.urls import re_path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from .views import (
     LoginView,
-    CurrentUserView,
-    UserCreateView,
     UserView,
     UploadVerificationView,
     verify_email,
-    resend_verification,
-    password_reset_request,
+    resend_email_verification,
     password_reset_verify,
+    password_reset_request,
 )
 
 
 urlpatterns = [
-    re_path(r"^login/", LoginView.as_view(), name="login_obtain_token"),
+    re_path(r"^login/$", LoginView.as_view(), name="login_obtain_token"),
     re_path(
-        r"^login/token-refresh/",
-        TokenRefreshView.as_view(),
-        name="login_token_refresh",
+        r"^token/refresh/$", TokenRefreshView.as_view(), name="login_token_refresh",
     ),
     re_path(
-        r"^login/token-verify/", TokenVerifyView.as_view(), name="login_token_verify",
+        r"^token/verification/$", TokenVerifyView.as_view(), name="login_token_verify",
     ),
-    path("users/<uuid:id>/", UserView.as_view(), name="user_view"),
-    path(
-        "current/",
-        CurrentUserView.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "patch": "partial_update",
-                "delete": "destroy",
-            }
-        ),
-        name="view_user",
+    re_path(r"^users/$", UserView.as_view(), name="user_view"),
+    re_path(r"^email/verification/$", verify_email, name="email_verification",),
+    re_path(
+        r"^email/verification/resend/$",
+        resend_email_verification,
+        name="resend_email_verification",
     ),
-    path("create/", UserCreateView.as_view(), name="create_user"),
-    path("verify/<uuid:token>/", verify_email, name="email_verification"),
-    path("resend_verification/", resend_verification, name="resend_email_verification"),
-    path(
-        "request-password-reset/", password_reset_request, name="request_password_reset"
+    re_path(r"^password/reset/$", password_reset_verify, name="reset_password",),
+    re_path(
+        r"^password/reset/request/$",
+        password_reset_request,
+        name="request_password_reset",
     ),
-    path("reset-password/<uuid:token>/", password_reset_verify, name="reset_password"),
 ]

@@ -5,6 +5,7 @@ from .models import User, Student, Teacher
 from .forms import UserAddForm, UserChangeForm
 
 
+@admin.register(User)
 class UserAdmin(UserAdmin):
     add_form = UserAddForm
     form = UserChangeForm
@@ -17,7 +18,8 @@ class UserAdmin(UserAdmin):
         "last_name",
         "render_picture",
         "phone",
-        "user_type",
+        "is_student",
+        "is_teacher",
         "is_staff",
         "is_active",
     )
@@ -33,7 +35,8 @@ class UserAdmin(UserAdmin):
                     "phone",
                     "gender",
                     "picture",
-                    "user_type",
+                    "is_student",
+                    "is_teacher",
                     "is_staff",
                     "is_active",
                 )
@@ -53,7 +56,8 @@ class UserAdmin(UserAdmin):
                     "phone",
                     "gender",
                     "picture",
-                    "user_type",
+                    "is_student",
+                    "is_teacher",
                     "is_staff",
                     "is_active",
                 )
@@ -68,14 +72,12 @@ class UserAdmin(UserAdmin):
     render_picture.short_description = "Picture"
 
 
+@admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     list_display = ("user",)
 
 
+@admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ("user",)
 
-
-admin.site.register(User, UserAdmin)
-admin.site.register(Student, StudentAdmin)
-admin.site.register(Teacher, TeacherAdmin)
