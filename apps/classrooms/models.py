@@ -34,7 +34,7 @@ class Course(BaseModel):
     teachers = models.ManyToManyField(Teacher)
 
     def __str__(self):
-        return self.title
+        return "{}".format(self.title)
 
     @property
     def topics(self):
@@ -42,23 +42,25 @@ class Course(BaseModel):
 
 
 class Topic(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
     teachers = models.ManyToManyField(Teacher)
 
     def __str__(self):
-        return self.title
+        return "{}".format(self.title)
 
 
 class Classroom(BaseModel):
     REPEAT_CHOICES = (
-        (0, _("Doesn't repeat")),
-        (1, _("Daily")),
-        (2, _("Weekly")),
-        (3, _("Monthly")),
-        (4, _("Anually")),
-        (5, _("Every Weekday (Mon - Fri)")),
+        ("never", _("Doesn't repeat")),
+        ("daily", _("Daily")),
+        ("weekly", _("Weekly")),
+        ("monthly", _("Monthly")),
+        ("annually", _("Annually")),
+        ("weekday", _("Every Weekday (Mon - Fri)")),
+        ("weekend", _("Every Weekend (Sat - Sun)")),
     )
 
     def get_meeting_id():
@@ -78,9 +80,12 @@ class Classroom(BaseModel):
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True)
 
-    moderator_password = models.CharField(max_length=120, null=True)
-    attendee_password = models.CharField(max_length=120, null=True)
-
+    meeting_id = models.IntegerField(
+        _("Meeting ID"),
+        help_text=_("The meeting number which need to be unique."),
+        unique=True,
+        default=get_meeting_id,
+    )
     welcome_message = models.CharField(
         _("Welcome message"),
         help_text=_("Message which displayed on the chat window."),
@@ -92,14 +97,11 @@ class Classroom(BaseModel):
         help_text=_("URL to which users will be redirected."),
         default=settings.BBB_LOGOUT_URL,
     )
-    meeting_id = models.IntegerField(
-        _("Meeting ID"),
-        help_text=_("The meeting number which need to be unique."),
-        unique=True,
-        default=get_meeting_id,
-    )
 
-    repeats = models.IntegerField(choices=REPEAT_CHOICES, default=0)
+    moderator_password = models.CharField(max_length=120, null=True)
+    attendee_password = models.CharField(max_length=120, null=True)
+
+    repeats = models.CharField(max_length=32, choices=REPEAT_CHOICES, default="never")
     class_time = models.TimeField(_("Class time"))
     start_date = models.DateField(_("Start date"))
     end_date = models.DateField(_("End date"))
@@ -120,7 +122,7 @@ class Classroom(BaseModel):
     def create_meeting_room(self):
         if not self.starting_class:
             self.starting_class = True
-            callback_url = "{}/classrooms/meeting/end/{}".format(
+            callback_url = "{}/classrooms/end-meeting/{}".format(
                 settings.API_HOST, self.meeting_id
             )
             response = create_meeting(
