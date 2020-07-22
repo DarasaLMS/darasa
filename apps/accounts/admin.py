@@ -9,7 +9,7 @@ from .forms import UserAddForm, UserChangeForm
 class UserAdmin(UserAdmin):
     add_form = UserAddForm
     form = UserChangeForm
-    ordering = ["date_joined"]
+    ordering = ["first_name"]
 
     list_display = (
         "email",
