@@ -3,7 +3,6 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from .views import (
     LoginView,
     UserView,
-    UploadVerificationView,
     verify_email,
     resend_email_verification,
     password_reset_verify,

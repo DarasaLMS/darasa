@@ -1,20 +1,17 @@
 from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.generics import get_object_or_404, ListCreateAPIView, DestroyAPIView
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.generics import get_object_or_404, ListCreateAPIView
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import exceptions, permissions, serializers, status
+from rest_framework import exceptions, permissions, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.accounts.api.serializers import (
     LoginSerializer,
     UserSerializer,
     PasswordResetRequestSerializer,
 )
-from apps.accounts.models import VerificationToken, User, PasswordResetToken, Teacher
+from apps.accounts.models import VerificationToken, User, PasswordResetToken
 
 
 class LoginView(TokenObtainPairView):
@@ -26,52 +23,6 @@ class UserView(ListCreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = "id"
-
-
-class UploadVerificationView(APIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    parser_classes = (
-        MultiPartParser,
-        FormParser,
-    )
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                "verification_file",
-                openapi.IN_FORM,
-                required=True,
-                type=openapi.TYPE_FILE,
-            )
-        ]
-    )
-    def post(self, request, format=None):
-        teacher = Teacher.objects.filter(user=request.user)
-        if not teacher:
-            raise exceptions.NotFound(_("Teacher not found!"))
-
-        if teacher.verification_file:
-            teacher.verification_file.delete()
-
-        verification_file = request.FILES["verification_file"]
-        teacher.verification_file.save(verification_file.name, verification_file)
-        teacher.save()
-        serializer = self.serializer_class(instance=request.user)
-        return Response(serializer.data)
-
-
-class DeleteVerificationView(DestroyAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def delete(self, request):
-        teacher = Teacher.objects.filter(user=request.user)
-        if teacher:
-            teacher.verification_file.delete()
-            teacher.save()
-
-        return Response(self.serializer_class(instance=request.user).data)
 
 
 @swagger_auto_schema(
