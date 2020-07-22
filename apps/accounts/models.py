@@ -85,6 +85,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     User model represents a person interacting with the system
     """
 
+    STAFF = "staff"
+    STUDENT = "student"
+    TEACHER = "teacher"
+    USER_TYPE = (
+        (STAFF, "Staff"),
+        (STUDENT, "Student"),
+        (TEACHER, "Teacher"),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     first_name = models.CharField(_("First name"), max_length=24, blank=True)
     last_name = models.CharField(_("Last name"), max_length=24, blank=True)
@@ -107,8 +115,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    is_student = models.BooleanField(default=True)
-    is_teacher = models.BooleanField(default=True)
+    user_type = models.IntegerField(_("User type"), choices=USER_TYPE, default=1)
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)

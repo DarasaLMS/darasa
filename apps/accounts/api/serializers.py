@@ -23,6 +23,12 @@ class StudentSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ["user"]
+
+
 class TeacherSerializer(serializers.ModelSerializer):
     courses = serializers.ReadOnlyField()
     classrooms = serializers.ReadOnlyField()
@@ -47,23 +53,9 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class MiniTeacherSerializer(serializers.ModelSerializer):
-    courses = serializers.ReadOnlyField()
-    classrooms = serializers.ReadOnlyField()
-    duration = serializers.ReadOnlyField()
-    feedback = serializers.ReadOnlyField()
-    rating = serializers.ReadOnlyField()
-
     class Meta:
         model = Teacher
-        fields = [
-            "user",
-            "bio",
-            "courses",
-            "classrooms",
-            "duration",
-            "feedback",
-            "rating",
-        ]
+        fields = ["user", "bio"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -83,6 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "picture",
             "accepted_terms",
+            "user_type",
             "is_staff",
             "is_active",
             "date_joined",
@@ -159,6 +152,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MiniUserSerializer(serializers.ModelSerializer):
+    student = MiniStudentSerializer(required=False, allow_null=True)
+    teacher = MiniTeacherSerializer(required=False, allow_null=True)
+
     class Meta:
         model = User
         fields = (
@@ -170,8 +166,11 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "picture",
+            "user_type",
             "is_staff",
             "is_active",
+            "student",
+            "teacher",
         )
         read_only_fields = ("is_staff", "is_active")
 
