@@ -149,7 +149,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             to_email = self.email
             data = {
                 "first_name": self.first_name,
-                "verification_url": "{}/accounts/verify/?token={}".format(
+                "verification_url": "{}/accounts/verify?token={}".format(
                     settings.HOST, str(token.token)
                 ),
                 "site_name": settings.SITE_NAME,
@@ -177,12 +177,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         PasswordResetToken.objects.filter(user=self).delete()
         pwd_reset_token = PasswordResetToken(user=self)
         pwd_reset_token.save()
-        subject = "{}: ".format(settings.SITE_NAME) + _("Reset Password")
+        text = _("Reset Password")
+        subject = "{}: {}".format(settings.SITE_NAME, text)
         to_email = self.email
         data = {
             "first_name": self.first_name,
             "email": self.email,
-            "reset_url": "{}/accounts/password/reset/?token={}".format(
+            "reset_url": "{}/accounts/password/reset?token={}".format(
                 settings.HOST, pwd_reset_token.token
             ),
             "site_name": settings.SITE_NAME,

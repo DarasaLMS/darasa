@@ -29,17 +29,17 @@ class UserView(ListCreateAPIView):
     method="POST",
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"verification_token": openapi.Schema(type=openapi.TYPE_STRING),},
+        properties={"token": openapi.Schema(type=openapi.TYPE_STRING),},
     ),
 )
 @api_view(["POST"])
 def verify_email(request, **kwargs):
-    verification_token = request.data.get("verification_token", None)
-    if not verification_token:
+    token = request.data.get("token", None)
+    if not token:
         raise exceptions.NotAcceptable(detail=_("Token not found!"))
 
-    token = get_object_or_404(VerificationToken, token=verification_token)
-    if token.user.check_email_verification(token.token):
+    verification_token = get_object_or_404(VerificationToken, token=token)
+    if verification_token.user.check_email_verification(verification_token.token):
         return Response({"success": True})
 
     return Response(
@@ -81,22 +81,22 @@ def password_reset_request(request, **kwargs):
         type=openapi.TYPE_OBJECT,
         properties={
             "password": openapi.Schema(type=openapi.TYPE_STRING),
-            "verification_token": openapi.Schema(type=openapi.TYPE_STRING),
+            "token": openapi.Schema(type=openapi.TYPE_STRING),
         },
     ),
 )
 @api_view(["POST"])
 def password_reset_verify(request, **kwargs):
     password = request.data.get("password", None)
-    verification_token = request.data.get("verification_token", None)
-    token = get_object_or_404(PasswordResetToken, token=verification_token)
+    token = request.data.get("token", None)
+    verification_token = get_object_or_404(PasswordResetToken, token=token)
     if not password:
         raise exceptions.ValidationError({"password": _("Password must be specified!")})
     else:
-        user = token.user
+        user = verification_token.user
         user.set_password(password)
         user.save()
-        # delete token after usage
-        token.delete()
+        # delete verification token after usage
+        verification_token.delete()
         return Response({"success": True})
 
