@@ -88,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     STAFF = "staff"
     STUDENT = "student"
     TEACHER = "teacher"
-    USER_TYPE = (
+    ROLES = (
         (STAFF, "Staff"),
         (STUDENT, "Student"),
         (TEACHER, "Teacher"),
@@ -115,7 +115,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    user_type = models.IntegerField(_("Role"), choices=USER_TYPE, default=1)
+    role = models.CharField(_("Role"), max_length=16, choices=ROLES, default=STUDENT)
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
@@ -127,31 +127,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
     objects = UserManager()
 
-    __email = None
+    _email = None
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__email = self.email
-
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if self.user_type == self.STAFF:
-            self.is_staff = True
-
-        if self.__email.lower() != self.email.lower():
-            self.email_verified = False
-            self.send_verification_email()
-
-        return super(User, self).save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
+        self._email = self.email
 
     def send_verification_email(self):
         if not self.email_verified:
@@ -200,9 +183,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_email.delay(subject, text_content, to_email, html_content=html_content)
 
 
+@receiver(pre_save, sender=User)
+def pre_save_user(sender, instance, **kwargs):
+    if instance.role == instance.STAFF:
+        instance.is_staff = True
+
+    # If email has changed
+    if instance._email.lower() != instance.email.lower():
+        instance.email_verified = False
+
+
 @receiver(post_save, sender=User)
-def send_verification_email_on_account_creation(sender, instance, created, **kwargs):
+def post_save_user(sender, instance, created, **kwargs):
     if created:
+        instance.send_verification_email()
+
+    # If email has changed
+    if instance._email.lower() != instance.email.lower():
         instance.send_verification_email()
 
 

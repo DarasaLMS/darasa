@@ -75,7 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "picture",
             "accepted_terms",
-            "user_type",
+            "role",
             "is_staff",
             "is_active",
             "date_joined",
@@ -166,7 +166,7 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "picture",
-            "user_type",
+            "role",
             "is_staff",
             "is_active",
             "student",
@@ -185,11 +185,11 @@ class LoginSerializer(TokenObtainPairSerializer):
 
         student = Student.objects.filter(user=user)
         if student.exists():
-            token["user_type"] = user.user_type
+            token["role"] = user.role
 
         teacher = Teacher.objects.filter(user=user)
         if teacher.exists():
-            token["user_type"] = user.user_type
+            token["role"] = user.role
 
         return token
 
