@@ -177,7 +177,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         PasswordResetToken.objects.filter(user=self).delete()
         pwd_reset_token = PasswordResetToken(user=self)
         pwd_reset_token.save()
-        subject = _("Reset password")
+        subject = "{}: ".format(settings.SITE_NAME) + _("Reset Password")
         to_email = self.email
         data = {
             "first_name": self.first_name,
@@ -295,11 +295,8 @@ class Teacher(models.Model):
         ).exists()
 
     def send_verified_email(self):
-        subject, from_email, to_email = (
-            "Verification for {}".format(settings.SITE_NAME),
-            settings.DEFAULT_FROM_EMAIL,
-            self.user.email,
-        )
+        subject = "Verification for {}".format(settings.SITE_NAME)
+        to_email = self.user.email
         data = {
             "first_name": self.user.first_name,
             "login_url": settings.HOST,

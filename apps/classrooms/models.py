@@ -223,7 +223,7 @@ def _create_meeting_room(sender, instance, created, **kwargs):
         text_content = CLASSROOM_MODERATOR_TXT.render(data)
         html_content = CLASSROOM_MODERATOR_HTML.render(data)
         send_email.delay(
-            "Join classroom {}".format(instance.classroom),
+            "Join Classroom {}".format(instance.classroom),
             text_content,
             instance.student.user.email,
             html_content=html_content,
@@ -272,7 +272,7 @@ def _process_request(sender, instance, created, **kwargs):
             text_content = REQUEST_APPROVED_TXT.render(data)
             html_content = REQUEST_APPROVED_HTML.render(data)
             send_email.delay(
-                "Join classroom {}".format(instance.classroom),
+                "Join Classroom {}".format(instance.classroom),
                 text_content,
                 instance.student.user.email,
                 html_content=html_content,
@@ -287,7 +287,7 @@ def _process_request(sender, instance, created, **kwargs):
             text_content = REQUEST_REJECTED_TXT.render(data)
             html_content = REQUEST_REJECTED_HTML.render(data)
             send_email.delay(
-                "Request for classroom {}".format(instance.classroom),
+                "Request for Classroom {}".format(instance.classroom),
                 text_content,
                 instance.student.user.email,
                 html_content=html_content,
