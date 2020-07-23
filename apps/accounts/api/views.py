@@ -33,26 +33,30 @@ class UserView(ListCreateAPIView):
     ),
 )
 @api_view(["POST"])
-def verify_email(request):
+def verify_email(request, **kwargs):
     verification_token = request.data.get("verification_token", None)
     if not verification_token:
         raise exceptions.NotAcceptable(detail=_("Token not found!"))
 
     token = get_object_or_404(VerificationToken, token=verification_token)
-    if token.user.check_email_verification(token):
+    if token.user.check_email_verification(token.token):
         return Response({"success": True})
 
-    else:
-        return Response(
-            {"error": _("Token not valid!")}, status=status.HTTP_400_BAD_REQUEST
-        )
+    return Response(
+        {"error": _("Token not valid!")}, status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
-def resend_email_verification(request):
-    request.user.send_verification_email()
-    return Response({"success": True})
+def resend_email_verification(request, **kwargs):
+    sent = request.user.send_verification_email()
+    if sent:
+        return Response({"success": True})
+
+    return Response(
+        {"error": _("Email already verified!")}, status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 @swagger_auto_schema(
@@ -63,10 +67,11 @@ def resend_email_verification(request):
     ),
 )
 @api_view(["POST"])
-def password_reset_request(request):
+def password_reset_request(request, **kwargs):
     serializer = PasswordResetRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
+
     return Response({"success": True})
 
 
@@ -81,7 +86,7 @@ def password_reset_request(request):
     ),
 )
 @api_view(["POST"])
-def password_reset_verify(request):
+def password_reset_verify(request, **kwargs):
     password = request.data.get("password", None)
     verification_token = request.data.get("verification_token", None)
     token = get_object_or_404(PasswordResetToken, token=verification_token)

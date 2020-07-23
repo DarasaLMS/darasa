@@ -71,6 +71,9 @@ class VerificationToken(models.Model):
     )
     created = models.DateTimeField(_("Created"), auto_now_add=True)
 
+    def __str__(self):
+        return "{}".format(self.token)
+
 
 class PasswordResetToken(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -78,6 +81,9 @@ class PasswordResetToken(models.Model):
         max_length=32, default=get_unique_random_string, editable=False, unique=True
     )
     created = models.DateTimeField(_("Created"), auto_now_add=True)
+
+    def __str__(self):
+        return "{}".format(self.token)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -143,14 +149,17 @@ class User(AbstractBaseUser, PermissionsMixin):
             to_email = self.email
             data = {
                 "first_name": self.first_name,
-                "verification_url": "{}/accounts/verify/{}".format(
-                    settings.API_HOST, str(token.token)
+                "verification_url": "{}/accounts/verify/?token={}".format(
+                    settings.HOST, str(token.token)
                 ),
                 "site_name": settings.SITE_NAME,
             }
             text_content = EMAIL_VERIFICATION_TXT.render(data)
             html_content = EMAIL_VERIFICATION_HTML.render(data)
             send_email.delay(subject, text_content, to_email, html_content=html_content)
+            return True
+
+        return False
 
     def check_email_verification(self, token):
         if not hasattr(self, "verificationtoken"):
