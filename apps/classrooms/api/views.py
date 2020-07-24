@@ -5,10 +5,9 @@ from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from apps.classrooms.models import Course, Topic, Classroom, Request
+from apps.classrooms.models import Course, Classroom, Request
 from .serializers import (
     CourseSerializer,
-    TopicSerializer,
     ClassroomSerializer,
     RequestSerializer,
 )
@@ -17,12 +16,6 @@ from .serializers import (
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class TopicViewSet(viewsets.ModelViewSet):
-    serializer_class = TopicSerializer
-    queryset = Topic.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
 

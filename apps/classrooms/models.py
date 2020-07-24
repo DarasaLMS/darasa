@@ -36,21 +36,6 @@ class Course(BaseModel):
     def __str__(self):
         return "{}".format(self.title)
 
-    @property
-    def topics(self):
-        return self.topic_set.all()
-
-
-class Topic(BaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
-    title = models.CharField(max_length=256)
-    description = models.TextField(blank=True)
-    teachers = models.ManyToManyField(Teacher)
-
-    def __str__(self):
-        return "{}".format(self.title)
-
 
 class Classroom(BaseModel):
     REPEAT_CHOICES = (
@@ -78,7 +63,6 @@ class Classroom(BaseModel):
     )
     students = models.ManyToManyField(Student)
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True)
 
     meeting_id = models.IntegerField(
         _("Meeting ID"),
@@ -244,7 +228,7 @@ class Request(BaseModel):
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     status = models.CharField(max_length=16, choices=STATUS, default="pending")
 
-    __status = None
+    _status = None
 
     class Meta:
         unique_together = [["student", "classroom"]]
@@ -254,12 +238,12 @@ class Request(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__status = self.status
+        self._status = self.status
 
 
 @receiver(post_save, sender=Request)
 def _process_request(sender, instance, created, **kwargs):
-    if instance.__status != instance.status:
+    if instance._status != instance.status:
         if instance.status == "approved":
             instance.classroom.students.add(instance.student)
             meeting_url = instance.classroom.create_join_link(instance.student)

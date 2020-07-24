@@ -7,7 +7,7 @@ from djmoney.models.fields import MoneyField
 from django_countries.fields import CountryField
 from apps.core.models import BaseModel
 from apps.accounts.models import User
-from apps.classrooms.models import Classroom, Course, Topic
+from apps.classrooms.models import Course
 
 
 class Billing(BaseModel):
@@ -49,7 +49,7 @@ class Payment(BaseModel):
         ("fully-refunded", "Fully refunded"),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
     billing = models.ForeignKey(Billing, on_delete=models.PROTECT)
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     transaction_reference = models.CharField(max_length=128, unique=True)
@@ -69,12 +69,7 @@ class Payment(BaseModel):
 
 
 class Rate(BaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    classroom = models.ForeignKey(
-        Classroom, on_delete=models.CASCADE, null=True, blank=True
-    )
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, null=True, blank=True)
+    course = models.OneToOneField(Course, on_delete=models.CASCADE, primary_key=True)
     price = MoneyField(
         max_digits=10, decimal_places=2, default_currency=settings.DEFAULT_CURRENCY
     )

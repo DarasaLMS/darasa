@@ -23,7 +23,7 @@ class PaymentAdmin(admin.ModelAdmin):
     model = Payment
     list_display = (
         "transaction_reference",
-        "classroom",
+        "course",
         "billing",
         "customer_ip_address",
         "total_amount",
@@ -39,9 +39,7 @@ class PaymentAdmin(admin.ModelAdmin):
 class RateAdmin(admin.ModelAdmin):
     model = Rate
     list_display = (
-        "classroom",
         "course",
-        "topic",
         "price",
         "date_modified",
     )

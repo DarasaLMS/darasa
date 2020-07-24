@@ -3,7 +3,6 @@ from django.urls import include, re_path, path
 from .views import (
     ClassroomViewSet,
     CourseViewSet,
-    TopicViewSet,
     RequestViewSet,
     end_meeting_callback,
 )
@@ -11,7 +10,6 @@ from .views import (
 router = routers.DefaultRouter()
 router.register(r"", ClassroomViewSet)
 router.register(r"courses", CourseViewSet)
-router.register(r"topics", TopicViewSet)
 router.register(r"requests", RequestViewSet)
 
 urlpatterns = [

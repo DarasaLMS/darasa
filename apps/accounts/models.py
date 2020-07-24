@@ -99,15 +99,20 @@ class User(AbstractBaseUser, PermissionsMixin):
         (STUDENT, "Student"),
         (TEACHER, "Teacher"),
     )
+
+    MALE = "male"
+    FEMALE = "female"
+    GENDERS = ((MALE, _("Male")), (FEMALE, _("Female")))
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(_("First name"), max_length=24, blank=True)
-    last_name = models.CharField(_("Last name"), max_length=24, blank=True)
-    nickname = models.CharField(_("Nickname"), max_length=24, blank=True)
+    first_name = models.CharField(_("First name"), max_length=32, blank=True)
+    last_name = models.CharField(_("Last name"), max_length=32, blank=True)
+    nickname = models.CharField(_("Display name"), max_length=32, blank=True)
     gender = models.CharField(
         _("Gender"),
-        max_length=6,
+        max_length=8,
         blank=True,
-        choices=(("M", _("Male")), ("F", _("Female"))),
+        choices=GENDERS,
     )
     email = models.EmailField(_("Email address"), unique=True)
     email_verified = models.BooleanField(_("Email verified"), default=False)
@@ -128,9 +133,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = [
-        "first_name",
-    ]
+    REQUIRED_FIELDS = ["first_name", "last_name"]
     objects = UserManager()
 
     _email = None
@@ -214,7 +217,7 @@ def post_save_user(sender, instance, created, **kwargs):
 
 
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)
@@ -237,26 +240,26 @@ class Student(models.Model):
 
 
 class Teacher(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     bio = models.TextField()
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
         upload_to="verifications/%Y/%m", null=True, blank=True,
     )
 
-    __was_verified = None
+    _was_verified = None
 
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)
 
     def __init__(self, *args, **kwargs):
         super(Teacher, self).__init__(*args, **kwargs)
-        self.__was_verified = self.verified
+        self._was_verified = self.verified
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        if self.__was_verified != self.verified:
+        if self._was_verified != self.verified:
             self.send_verified_email()
 
         return super(Teacher, self).save(
