@@ -1,10 +1,12 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
 from moneyed import Money
 from djmoney.models.fields import MoneyField
 from django_countries.fields import CountryField
+from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.models import BaseModel
 from apps.accounts.models import User
 from apps.classrooms.models import Course
@@ -20,6 +22,10 @@ class Billing(BaseModel):
     postal_code = models.CharField(max_length=256, blank=True)
     country = CountryField(blank=True, null=True)
 
+    # Mobile money phone number
+    phone = PhoneNumberField(_("Mobile money phone number"), blank=True)
+
+    # Credit card details
     cc_first_digits = models.CharField(max_length=6, blank=True, default="")
     cc_last_digits = models.CharField(max_length=4, blank=True, default="")
     cc_brand = models.CharField(max_length=40, blank=True, default="")

@@ -13,8 +13,9 @@ from django.utils.crypto import get_random_string
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import get_template
-from sorl.thumbnail import ImageField
 from django.utils.translation import ugettext_lazy as _
+from sorl.thumbnail import ImageField
+from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
 
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     email = models.EmailField(_("Email address"), unique=True)
     email_verified = models.BooleanField(_("Email verified"), default=False)
-    phone = models.CharField(_("Phone number"), max_length=16, unique=True)
+    phone = PhoneNumberField(_("Phone number"), blank=True)
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )

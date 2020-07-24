@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "sorl.thumbnail",
     "django_celery_beat",
     "django_countries",
+    "phonenumber_field",
     "apps.accounts",
     "apps.classrooms",
     "apps.feedback",
