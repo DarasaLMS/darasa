@@ -47,13 +47,20 @@ class Billing(BaseModel):
 
 
 class Payment(BaseModel):
+    NOT_CHARGED = "not-charged"
+    PARTIALLY_CHARGED = "partially-charged"
+    FULLY_CHARGED = "fully-charged"
+    PARTIALLY_REFUNDED = "partially-refunded"
+    FULLY_REFUNDED = "fully-refunded"
+
     CHARGE_STATUS = (
-        ("not-charged", "Not charged"),
-        ("partially-charged", "Partially charged"),
-        ("fully-charged", "Fully charged"),
-        ("partially-refunded", "Partially refunded"),
-        ("fully-refunded", "Fully refunded"),
+        (NOT_CHARGED, "Not charged"),
+        (PARTIALLY_CHARGED, "Partially charged"),
+        (FULLY_CHARGED, "Fully charged"),
+        (PARTIALLY_REFUNDED, "Partially refunded"),
+        (FULLY_REFUNDED, "Fully refunded"),
     )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
     billing = models.ForeignKey(Billing, on_delete=models.PROTECT)
@@ -66,7 +73,7 @@ class Payment(BaseModel):
         max_digits=10, decimal_places=2, default_currency=settings.DEFAULT_CURRENCY
     )
     charge_status = models.CharField(
-        max_length=20, choices=CHARGE_STATUS, default="not-charged"
+        max_length=20, choices=CHARGE_STATUS, default=NOT_CHARGED
     )
     extra_data = models.TextField(blank=True, default="")
 

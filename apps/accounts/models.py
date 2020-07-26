@@ -96,9 +96,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     STUDENT = "student"
     TEACHER = "teacher"
     ROLES = (
-        (STAFF, "Staff"),
-        (STUDENT, "Student"),
-        (TEACHER, "Teacher"),
+        (STAFF, _("Staff")),
+        (STUDENT, _("Student")),
+        (TEACHER, _("Teacher")),
     )
 
     MALE = "male"
@@ -109,12 +109,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_("First name"), max_length=32, blank=True)
     last_name = models.CharField(_("Last name"), max_length=32, blank=True)
     nickname = models.CharField(_("Display name"), max_length=32, blank=True)
-    gender = models.CharField(
-        _("Gender"),
-        max_length=8,
-        blank=True,
-        choices=GENDERS,
-    )
+    gender = models.CharField(_("Gender"), max_length=8, blank=True, choices=GENDERS,)
     email = models.EmailField(_("Email address"), unique=True)
     email_verified = models.BooleanField(_("Email verified"), default=False)
     phone = PhoneNumberField(_("Phone number"), blank=True)
@@ -217,8 +212,20 @@ def post_save_user(sender, instance, created, **kwargs):
         instance.send_verification_email()
 
 
+class AcademicLevel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=256)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    academic_level = models.ForeignKey(
+        AcademicLevel, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)

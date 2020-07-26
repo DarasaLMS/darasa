@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
 from apps.core.models import BaseModel
+from apps.core.tasks import send_email
 from apps.core.bbb import (
     get_meeting_info,
     create_meeting,
@@ -15,16 +16,15 @@ from apps.core.bbb import (
     join_meeting_url,
 )
 from apps.accounts.models import User, Student, Teacher
-from apps.core.tasks import send_email
 
 CLASSROOM_MODERATOR_TXT = get_template("emails/classroom_moderator.txt")
 CLASSROOM_MODERATOR_HTML = get_template("emails/classroom_moderator.txt")
 
-REQUEST_APPROVED_TXT = get_template("emails/request_approved.txt")
-REQUEST_APPROVED_HTML = get_template("emails/request_approved.html")
+REQUEST_ACCEPTED_TXT = get_template("emails/request_accepted.txt")
+REQUEST_ACCEPTED_HTML = get_template("emails/request_accepted.html")
 
-REQUEST_REJECTED_TXT = get_template("emails/request_rejected.txt")
-REQUEST_REJECTED_HTML = get_template("emails/request_rejected.html")
+REQUEST_DECLINED_TXT = get_template("emails/request_declined.txt")
+REQUEST_DECLINED_HTML = get_template("emails/request_declined.html")
 
 
 class Course(BaseModel):
@@ -58,11 +58,10 @@ class Classroom(BaseModel):
     name = models.CharField(
         _("Name"), help_text=_("The name of the classroom."), max_length=256
     )
-    teacher = models.ForeignKey(
-        Teacher, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    course = models.ForeignKey(Course, on_delete=models.PROTECT)
+
+    teacher = models.ForeignKey(Teacher, on_delete=models.PROTECT)
     students = models.ManyToManyField(Student)
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
 
     meeting_id = models.IntegerField(
         _("Meeting ID"),
@@ -215,11 +214,15 @@ def _create_meeting_room(sender, instance, created, **kwargs):
 
 
 class Request(BaseModel):
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    PENDING = "pending"
     STATUS = (
-        ("approved", "Approved"),
-        ("rejected", "Rejected"),
-        ("pending", "Pending"),
+        (ACCEPTED, _("Accepted")),
+        (DECLINED, _("Declined")),
+        (PENDING, _("Pending")),
     )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     teacher = models.ForeignKey(
@@ -244,7 +247,7 @@ class Request(BaseModel):
 @receiver(post_save, sender=Request)
 def _process_request(sender, instance, created, **kwargs):
     if instance._status != instance.status:
-        if instance.status == "approved":
+        if instance.status == Request.ACCEPTED:
             instance.classroom.students.add(instance.student)
             meeting_url = instance.classroom.create_join_link(instance.student)
             data = {
@@ -253,8 +256,8 @@ def _process_request(sender, instance, created, **kwargs):
                 "meeting_url": meeting_url,
                 "site_name": settings.SITE_NAME,
             }
-            text_content = REQUEST_APPROVED_TXT.render(data)
-            html_content = REQUEST_APPROVED_HTML.render(data)
+            text_content = REQUEST_ACCEPTED_TXT.render(data)
+            html_content = REQUEST_ACCEPTED_HTML.render(data)
             send_email.delay(
                 "Join Classroom {}".format(instance.classroom),
                 text_content,
@@ -262,14 +265,14 @@ def _process_request(sender, instance, created, **kwargs):
                 html_content=html_content,
             )
 
-        if instance.status == "rejected":
+        if instance.status == Request.DECLINED:
             data = {
                 "first_name": instance.student.user.first_name,
                 "classroom": instance.classroom,
                 "site_name": settings.SITE_NAME,
             }
-            text_content = REQUEST_REJECTED_TXT.render(data)
-            html_content = REQUEST_REJECTED_HTML.render(data)
+            text_content = REQUEST_DECLINED_TXT.render(data)
+            html_content = REQUEST_DECLINED_HTML.render(data)
             send_email.delay(
                 "Request for Classroom {}".format(instance.classroom),
                 text_content,
