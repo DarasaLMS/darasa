@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
-from apps.classrooms.models import Course, Classroom, Request
 from apps.accounts.api.serializers import TeacherSerializer, StudentSerializer
+from ..models import Course, Classroom, Request
 
 
 class CourseSerializer(serializers.ModelSerializer):

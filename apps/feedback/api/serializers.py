@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from apps.feedback.models import Feedback
 from apps.accounts.api.serializers import UserSerializer
 from apps.classrooms.api.serializers import ClassroomSerializer
+from ..models import Feedback
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
-from apps.accounts.models import User, Student, Teacher
+from ..models import User, Student, Teacher
 
 
 class StudentSerializer(serializers.ModelSerializer):

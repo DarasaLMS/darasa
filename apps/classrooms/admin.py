@@ -22,6 +22,6 @@ class ClassroomAdmin(admin.ModelAdmin):
 @admin.register(Request)
 class RequestAdmin(admin.ModelAdmin):
     model = Request
-    list_display = ("classroom", "student", "teacher", "status", "date_modified")
+    list_display = ("course", "student", "teacher", "status", "date_modified")
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]

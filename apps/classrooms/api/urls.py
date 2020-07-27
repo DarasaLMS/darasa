@@ -1,5 +1,5 @@
 from rest_framework import routers
-from django.urls import include, re_path, path
+from django.urls import include, re_path
 from .views import (
     ClassroomViewSet,
     CourseViewSet,
@@ -14,5 +14,5 @@ router.register(r"requests", RequestViewSet)
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
-    path("end-meeting/<uuid:meeting_id>/", end_meeting_callback),
+    re_path(r"^m/(?P<meeting_id>.+)/end/$", end_meeting_callback),
 ]

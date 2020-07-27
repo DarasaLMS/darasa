@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
 from sorl.thumbnail import ImageField
 from phonenumber_field.modelfields import PhoneNumberField
+from apps.scheduler.models import Calendar
 from apps.core.tasks import send_email
 
 logger = logging.getLogger(__name__)
@@ -65,28 +66,6 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class VerificationToken(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.CharField(
-        max_length=32, default=get_unique_random_string, editable=False, unique=True
-    )
-    created = models.DateTimeField(_("Created"), auto_now_add=True)
-
-    def __str__(self):
-        return "{}".format(self.token)
-
-
-class PasswordResetToken(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.CharField(
-        max_length=32, default=get_unique_random_string, editable=False, unique=True
-    )
-    created = models.DateTimeField(_("Created"), auto_now_add=True)
-
-    def __str__(self):
-        return "{}".format(self.token)
-
-
 class User(AbstractBaseUser, PermissionsMixin):
     """
     User model represents a person interacting with the system
@@ -116,6 +95,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
+    calendar = models.OneToOneField(Calendar, on_delete=models.CASCADE)
     accepted_terms = models.BooleanField(
         _("Accepted terms and conditions"), default=False
     )
@@ -210,6 +190,28 @@ def post_save_user(sender, instance, created, **kwargs):
     # If email has changed
     if instance._email.lower() != instance.email.lower():
         instance.send_verification_email()
+
+
+class VerificationToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.CharField(
+        max_length=32, default=get_unique_random_string, editable=False, unique=True
+    )
+    created = models.DateTimeField(_("Created"), auto_now_add=True)
+
+    def __str__(self):
+        return "{}".format(self.token)
+
+
+class PasswordResetToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    token = models.CharField(
+        max_length=32, default=get_unique_random_string, editable=False, unique=True
+    )
+    created = models.DateTimeField(_("Created"), auto_now_add=True)
+
+    def __str__(self):
+        return "{}".format(self.token)
 
 
 class AcademicLevel(models.Model):

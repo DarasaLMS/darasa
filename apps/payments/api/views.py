@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework import permissions
-from apps.payments.models import Billing, Payment, Rate
 from .serializers import BillingSerializer, PaymentSerializer, RateSerializer
+from ..models import Billing, Payment, Rate
 
 
 class BillingViewSet(viewsets.ModelViewSet):

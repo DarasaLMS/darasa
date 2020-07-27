@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from apps.payments.models import Billing, Payment, Rate
 from apps.accounts.api.serializers import MiniUserSerializer
 from apps.classrooms.api.serializers import (
     ClassroomSerializer,
     CourseSerializer,
 )
+from ..models import Billing, Payment, Rate
 
 
 class BillingSerializer(serializers.ModelSerializer):
