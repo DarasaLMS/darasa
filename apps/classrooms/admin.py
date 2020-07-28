@@ -14,7 +14,7 @@ class CourseAdmin(admin.ModelAdmin):
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
     model = Classroom
-    list_display = ("name", "course", "meeting_id", "teacher", "date_modified")
+    list_display = ("name", "course", "meeting_id", "date_modified")
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
 

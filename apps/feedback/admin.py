@@ -8,7 +8,7 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_display = (
         "message",
         "rating",
-        "classroom",
+        "course",
         "from_user",
         "to_user",
         "date_modified",

@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
 from django.template.defaultfilters import slugify
-from apps.scheduler.models import Event
+from sorl.thumbnail import ImageField
+from apps.scheduler.models import Event, Occurrence
 from apps.core.models import BaseModel
 from apps.core.tasks import send_email
 from apps.core.bbb import (
@@ -33,7 +34,16 @@ class Course(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
-    teachers = models.ManyToManyField(Teacher)
+    cover = ImageField(
+        upload_to="covers/%Y/%m", default="covers/default/cover.png"
+    )
+    teacher = models.ForeignKey(
+        Teacher, on_delete=models.PROTECT, related_name="teacher"
+    )
+    assistant_teacher = models.ForeignKey(
+        Teacher, on_delete=models.PROTECT, related_name="assistant_teacher"
+    )
+    students = models.ManyToManyField(Student)
 
     def __str__(self):
         return "{}".format(self.title)
@@ -50,14 +60,6 @@ class Classroom(BaseModel):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=200, unique=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT)
-
-    teacher = models.ForeignKey(Teacher, on_delete=models.PROTECT)
-    students = models.ManyToManyField(Student)
-
-    tags = models.ManyToManyField(
-        Course, through="CourseTag", related_name="course_tags"
-    )
-
     event = models.OneToOneField(Event, on_delete=models.CASCADE)
 
     meeting_id = models.IntegerField(
@@ -80,13 +82,19 @@ class Classroom(BaseModel):
 
     moderator_password = models.CharField(max_length=120, null=True)
     attendee_password = models.CharField(max_length=120, null=True)
-
     # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
     duration = models.PositiveIntegerField(default=0)
-    ongoing = models.BooleanField(default=False)
+
+    groups = models.ManyToManyField(
+        Course, through="ClassroomGroup", related_name="course_classroom_groups"
+    )
 
     def __str__(self):
         return "{}".format(self.name)
+
+    @property
+    def ongoing(self):
+        return True
 
     def create_meeting_room(self):
         callback_url = "{}/classrooms/m/{}/end/".format(
@@ -108,14 +116,17 @@ class Classroom(BaseModel):
         if response.get("returncode") == "SUCCESS":
             self.moderator_password = response.get("moderatorPW")
             self.attendee_password = response.get("attendeePW")
+            self.save()
+            return True
 
         self.save()
+        return False
 
     def create_join_link(self, user, moderator=False):
         if not self.meeting_id:
             self.create_meeting_room()
 
-        is_teacher = user == self.teacher
+        is_teacher = user == self.course.teacher
         if is_teacher:
             moderator = True
 
@@ -158,9 +169,6 @@ class Classroom(BaseModel):
             if info_response.get("returncode") == "SUCCESS":
                 print(info_response)
 
-    def estimate_duration(self):
-        return self.duration
-
 
 @receiver(pre_save, sender=Classroom)
 def pre_save_user(sender, instance, **kwargs):
@@ -170,25 +178,25 @@ def pre_save_user(sender, instance, **kwargs):
 @receiver(post_save, sender=Classroom)
 def _create_meeting_room(sender, instance, created, **kwargs):
     if created:
-        instance.create_meeting_room()
-        meeting_url = instance.classroom.create_join_link(instance.teacher)
-        data = {
-            "first_name": instance.teacher.user.first_name,
-            "classroom": instance.classroom,
-            "meeting_url": meeting_url,
-            "site_name": settings.SITE_NAME,
-        }
-        text_content = CLASSROOM_MODERATOR_TXT.render(data)
-        html_content = CLASSROOM_MODERATOR_HTML.render(data)
-        send_email.delay(
-            "Join Classroom {}".format(instance.classroom),
-            text_content,
-            instance.student.user.email,
-            html_content=html_content,
-        )
+        if instance.create_meeting_room():
+            meeting_url = instance.create_join_link(instance.course.teacher)
+            data = {
+                "first_name": instance.course.teacher.user.first_name,
+                "classroom": instance.name,
+                "meeting_url": meeting_url,
+                "site_name": settings.SITE_NAME,
+            }
+            text_content = CLASSROOM_MODERATOR_TXT.render(data)
+            html_content = CLASSROOM_MODERATOR_HTML.render(data)
+            send_email.delay(
+                "Join Classroom {}".format(instance.classroom),
+                text_content,
+                instance.student.user.email,
+                html_content=html_content,
+            )
 
 
-class CourseTag(models.Model):
+class ClassroomGroup(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
@@ -198,14 +206,14 @@ class CourseTag(models.Model):
         return "{}".format(self.name)
 
 
-@receiver(pre_save, sender=CourseTag)
+@receiver(pre_save, sender=ClassroomGroup)
 def pre_save_user(sender, instance, **kwargs):
     instance.slug = slugify(instance.name)
 
 
-class StudentDuration(models.Model):
-    student = models.ForeignKey(Course, on_delete=models.CASCADE)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
+class StudentAttendance(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    occurrence = models.ForeignKey(Occurrence, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(null=True, blank=True)
     left_at = models.DateTimeField(null=True, blank=True)
 
@@ -237,7 +245,7 @@ class Request(BaseModel):
         unique_together = [["student", "course"]]
 
     def __str__(self):
-        return "{} requested class {}".format(self.student, self.classroom)
+        return "{} requested to enroll in {}".format(self.student, self.course)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -248,18 +256,18 @@ class Request(BaseModel):
 def _process_request(sender, instance, created, **kwargs):
     if instance._status != instance.status:
         if instance.status == Request.ACCEPTED:
-            instance.classroom.students.add(instance.student)
+            instance.course.students.add(instance.student)
             meeting_url = instance.classroom.create_join_link(instance.student)
             data = {
                 "first_name": instance.student.user.first_name,
-                "classroom": instance.classroom,
+                "classroom": instance.classroom.name,
                 "meeting_url": meeting_url,
                 "site_name": settings.SITE_NAME,
             }
             text_content = REQUEST_ACCEPTED_TXT.render(data)
             html_content = REQUEST_ACCEPTED_HTML.render(data)
             send_email.delay(
-                "Join Classroom {}".format(instance.classroom),
+                "Join Classroom {}".format(instance.classroom.name),
                 text_content,
                 instance.student.user.email,
                 html_content=html_content,
@@ -268,13 +276,13 @@ def _process_request(sender, instance, created, **kwargs):
         if instance.status == Request.DECLINED:
             data = {
                 "first_name": instance.student.user.first_name,
-                "classroom": instance.classroom,
+                "classroom": instance.classroom.name,
                 "site_name": settings.SITE_NAME,
             }
             text_content = REQUEST_DECLINED_TXT.render(data)
             html_content = REQUEST_DECLINED_HTML.render(data)
             send_email.delay(
-                "Request for Classroom {}".format(instance.classroom),
+                "Request declined for Classroom {}".format(instance.classroom).name,
                 text_content,
                 instance.student.user.email,
                 html_content=html_content,

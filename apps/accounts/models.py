@@ -289,11 +289,7 @@ class Teacher(models.Model):
 
     @property
     def duration(self):
-        total_duration = 0
-        for classroom in self.classrooms():
-            total_duration += classroom.estimate_duration()
-
-        return total_duration
+        return 0
 
     @property
     def feedback(self):
