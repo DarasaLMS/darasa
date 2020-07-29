@@ -35,7 +35,7 @@ CORS_ORIGIN_WHITELIST = os.getenv("CORS_ORIGIN_WHITELIST").split(",")
 
 HOST = os.getenv("HOST")
 
-API_HOST = os.getenv("API_HOST")
+SITE_URL = os.getenv("SITE_URL")
 
 SITE_NAME = os.getenv("SITE_NAME", "Darasa LMS")
 

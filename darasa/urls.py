@@ -30,7 +30,7 @@ load_dotenv(os.path.join(settings.BASE_DIR, ".env"))
 
 SCHEMA_VIEW = get_schema_view(
     openapi.Info(
-        title=os.getenv("API_TITLE", "Darasa LMS API"),
+        title="{} API".format(os.getenv("SITE_NAME", "Darasa LMS")),
         default_version="v1",
         description="",
         terms_of_service="",
@@ -43,7 +43,7 @@ SCHEMA_VIEW = get_schema_view(
 
 admin.site.site_header = os.getenv("SITE_NAME", "Darasa LMS")
 admin.site.site_title = os.getenv("SITE_NAME", "Darasa LMS")
-admin.site.site_url = os.getenv("SITE_URL", "http://localhost:8000/admin")
+admin.site.site_url = "{}/admin".format(os.getenv("SITE_URL", "http://localhost:8000"))
 admin.site.index_title = "Administration"
 
 urlpatterns = [
