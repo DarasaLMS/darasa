@@ -27,11 +27,6 @@ class ClassroomViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = []
 
-    def get_queryset(self):
-        return self.queryset.filter(
-            Q(students__in=self.request.user) | Q(teacher=self.request.user)
-        )
-
 
 @api_view(["POST", "GET"])
 def end_meeting_callback(request, meeting_id):

@@ -5,16 +5,25 @@ from ..models import Course, Classroom, Request
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    teachers = TeacherSerializer(read_only=True, many=True)
+    teacher = TeacherSerializer(many=False, read_only=True)
+    assistant_teacher = TeacherSerializer(many=False, read_only=True)
+    students = StudentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ["id", "title", "description", "teachers", "date_modified"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "teacher",
+            "assistant_teacher",
+            "students",
+            "feedback_set",
+            "date_modified",
+        ]
 
 
 class ClassroomSerializer(serializers.ModelSerializer):
-    teacher = TeacherSerializer(many=False, read_only=True)
-    students = StudentSerializer(many=True, read_only=True)
     course = CourseSerializer(many=False, read_only=True)
 
     class Meta:
@@ -22,18 +31,11 @@ class ClassroomSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "teacher",
-            "students",
             "course",
             "meeting_id",
             "welcome_message",
             "logout_url",
-            "repeats",
-            "class_time",
-            "start_date",
-            "end_date",
             "duration",
-            "feedback_set",
             "date_modified",
         ]
 
