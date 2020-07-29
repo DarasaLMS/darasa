@@ -4,10 +4,7 @@
 *.pyc
 __pycache__
 db.sqlite3
-media
-!media/pictures/default/*
-!media/covers/default/*
-!media/logos/default/*
+
 
 # Backup files #
 *.bak
@@ -117,3 +114,9 @@ GitHub.sublime-settings
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+
+# Media
+# media/*
+!media/pictures/default/*
+!media/covers/default/*
+!media/logos/default/*
