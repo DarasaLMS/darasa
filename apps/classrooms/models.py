@@ -97,8 +97,8 @@ class Classroom(BaseModel):
         return True
 
     def create_meeting_room(self):
-        callback_url = "{}/classrooms/m/{}/end/".format(
-            settings.SITE_URL, self.meeting_id
+        callback_url = "{}/{}/classrooms/m/{}/end/".format(
+            settings.SITE_URL, settings.API_VERSION, self.meeting_id
         )
         response = create_meeting(
             self.name,
