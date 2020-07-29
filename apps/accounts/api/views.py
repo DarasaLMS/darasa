@@ -33,6 +33,7 @@ class UserView(ListCreateAPIView):
     ),
 )
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def verify_email(request, **kwargs):
     token = request.data.get("token", None)
     if not token:
@@ -67,6 +68,7 @@ def resend_email_verification(request, **kwargs):
     ),
 )
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def password_reset_request(request, **kwargs):
     serializer = PasswordResetRequestSerializer(data=request.data)
     if serializer.is_valid():
@@ -86,6 +88,7 @@ def password_reset_request(request, **kwargs):
     ),
 )
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def password_reset_verify(request, **kwargs):
     password = request.data.get("password", None)
     token = request.data.get("token", None)

@@ -88,16 +88,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_("First name"), max_length=32, blank=True)
     last_name = models.CharField(_("Last name"), max_length=32, blank=True)
     nickname = models.CharField(_("Display name"), max_length=32, blank=True)
-    gender = models.CharField(_("Gender"), max_length=8, blank=True, choices=GENDERS,)
+    gender = models.CharField(_("Gender"), max_length=8, blank=True, choices=GENDERS)
     email = models.EmailField(_("Email address"), unique=True)
     email_verified = models.BooleanField(_("Email verified"), default=False)
     phone = PhoneNumberField(_("Phone number"), blank=True)
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
-    calendar = models.OneToOneField(Calendar, on_delete=models.CASCADE)
+    calendar = models.OneToOneField(
+        Calendar, on_delete=models.SET_NULL, null=True, blank=True
+    )
     accepted_terms = models.BooleanField(
-        _("Accepted terms and conditions"), default=False
+        _("Accepted Terms and Conditions"), default=False
     )
 
     is_staff = models.BooleanField(default=False)
@@ -214,10 +216,11 @@ class PasswordResetToken(models.Model):
         return "{}".format(self.token)
 
 
-class AcademicLevel(models.Model):
+class EducationalStage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
+    courses = models.ManyToManyField("classrooms.Course")
 
     def __str__(self):
         return "{}".format(self.name)
@@ -225,8 +228,8 @@ class AcademicLevel(models.Model):
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    academic_level = models.ForeignKey(
-        AcademicLevel, on_delete=models.SET_NULL, null=True, blank=True
+    educational_stage = models.ForeignKey(
+        EducationalStage, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     def __str__(self):
@@ -326,3 +329,13 @@ def delete_document_if_verified(sender, instance, **kwargs):
         except Exception:
             logger.exception("Exception occured while trying to delete verified file")
 
+
+class School(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=256)
+    logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
+    phone = PhoneNumberField(_("Phone number"), blank=True)
+    email = models.EmailField(_("Email address"), unique=True)
+
+    def __str__(self):
+        return "{}".format(self.name)

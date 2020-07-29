@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_countries",
     "phonenumber_field",
+    "apps.core",
     "apps.accounts",
     "apps.classrooms",
     "apps.feedback",
