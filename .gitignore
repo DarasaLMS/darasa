@@ -116,7 +116,7 @@ GitHub.sublime-settings
 .history
 
 # Media
-# media/*
+media/*
 !media/pictures/default/*
 !media/covers/default/*
 !media/logos/default/*
