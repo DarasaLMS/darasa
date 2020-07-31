@@ -72,6 +72,7 @@ class UserSerializer(serializers.ModelSerializer):
             "gender",
             "email",
             "email_verified",
+            "password",
             "phone",
             "picture",
             "role",
@@ -94,11 +95,6 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-
-        print(">>>>>>>>>>>")
-        print(validated_data)
-        print(">>>>>>>>>>>")
-
         student = None
         teacher = None
 
