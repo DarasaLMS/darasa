@@ -74,7 +74,6 @@ class UserSerializer(serializers.ModelSerializer):
             "email_verified",
             "phone",
             "picture",
-            "accepted_terms",
             "role",
             "is_staff",
             "is_active",
@@ -95,6 +94,11 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+
+        print(">>>>>>>>>>>")
+        print(validated_data)
+        print(">>>>>>>>>>>")
+
         student = None
         teacher = None
 

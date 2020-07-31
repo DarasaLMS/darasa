@@ -254,7 +254,7 @@ class Student(models.Model):
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    bio = models.TextField()
+    bio = models.TextField(blank=True)
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
         upload_to="verifications/%Y/%m", null=True, blank=True,
