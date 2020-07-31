@@ -4,7 +4,7 @@ Thanks for getting started with {{ site_name }}! We need a little more informati
 
 Click this link to confirm your email address: {{ verification_url }}
 
-If you have problems, please paste the above URL into your web browser.
+If link is not clickable, copy and paste it into the address bar.
 
 Thanks,
 The {{ site_name }} Team
