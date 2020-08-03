@@ -2,7 +2,11 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
-from rest_framework.generics import get_object_or_404, ListCreateAPIView
+from rest_framework.generics import (
+    get_object_or_404,
+    ListCreateAPIView,
+    RetrieveAPIView,
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -22,7 +26,12 @@ class UserView(ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "id"
+
+
+class UserDetailView(RetrieveAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @swagger_auto_schema(
