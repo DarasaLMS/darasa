@@ -182,14 +182,8 @@ class LoginSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token["is_active"] = user.is_active
-
-        student = Student.objects.filter(user=user)
-        if student.exists():
-            token["role"] = user.role
-
-        teacher = Teacher.objects.filter(user=user)
-        if teacher.exists():
-            token["role"] = user.role
+        token["role"] = user.role
+        token["email_verified"] = user.email_verified
 
         return token
 
