@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
 from django.template.defaultfilters import slugify
 from sorl.thumbnail import ImageField
-from apps.scheduler.models import Event, Occurrence
+from apps.timetable.models import Event, Occurrence
 from apps.core.models import BaseModel
 from apps.core.tasks import send_email
 from apps.core.bbb import (

@@ -5,6 +5,8 @@ from django.db.models import F, Q
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from rest_framework.generics import ListAPIView
+from rest_framework import exceptions, permissions, status
 from ..models import Calendar, Event, Occurrence
 from ..periods import weekday_names
 from ..settings import (
@@ -13,6 +15,13 @@ from ..settings import (
     EVENT_NAME_PLACEHOLDER,
 )
 from ..utils import check_calendar_permissions
+from .serializers import CalendarSerializer
+
+
+class CalendarView(ListAPIView):
+    serializer_class = CalendarSerializer
+    queryset = Calendar.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @check_calendar_permissions

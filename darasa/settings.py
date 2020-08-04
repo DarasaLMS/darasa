@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     "apps.classrooms",
     "apps.feedback",
     "apps.payments",
-    "apps.scheduler",
+    "apps.timetable",
 ]
 
 MIDDLEWARE = [

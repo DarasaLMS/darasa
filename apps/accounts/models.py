@@ -16,7 +16,7 @@ from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
 from sorl.thumbnail import ImageField
 from phonenumber_field.modelfields import PhoneNumberField
-from apps.scheduler.models import Calendar
+from apps.timetable.models import Calendar
 from apps.core.tasks import send_email
 
 logger = logging.getLogger(__name__)

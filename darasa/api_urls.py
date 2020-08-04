@@ -25,4 +25,8 @@ urlpatterns = [
         r"^payments/",
         include(("apps.payments.api.urls", "payments-api"), namespace="payments-api"),
     ),
+    re_path(
+        r"^timetable/",
+        include(("apps.timetable.api.urls", "timetable-api"), namespace="timetable-api"),
+    ),
 ]
