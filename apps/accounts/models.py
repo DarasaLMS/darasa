@@ -193,6 +193,13 @@ def post_save_user(sender, instance, created, **kwargs):
     if instance._email.lower() != instance.email.lower():
         instance.send_verification_email()
 
+    if not instance.calendar:
+        # Create a user's calendar
+        calendar = Calendar.objects.create(
+            name="{}'s Calendar".format(instance.first_name)
+        )
+        instance.calendar = calendar
+
 
 class VerificationToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
