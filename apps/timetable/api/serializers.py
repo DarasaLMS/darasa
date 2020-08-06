@@ -14,7 +14,14 @@ class RuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rule
-        fields = ["id", "name", "description", "frequency", "params", "rrule_frequency"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "frequency",
+            "params",
+            "rrule_frequency",
+        ]
 
 
 class EventSerializer(serializers.ModelSerializer):

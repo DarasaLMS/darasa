@@ -34,9 +34,7 @@ class Course(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
-    cover = ImageField(
-        upload_to="covers/%Y/%m", default="covers/default/cover.png"
-    )
+    cover = ImageField(upload_to="covers/%Y/%m", default="covers/default/cover.png")
     teacher = models.ForeignKey(
         Teacher, on_delete=models.PROTECT, related_name="teacher"
     )
@@ -171,12 +169,12 @@ class Classroom(BaseModel):
 
 
 @receiver(pre_save, sender=Classroom)
-def pre_save_user(sender, instance, **kwargs):
+def pre_save_classroom(sender, instance, **kwargs):
     instance.slug = slugify(instance.name)
 
 
 @receiver(post_save, sender=Classroom)
-def _create_meeting_room(sender, instance, created, **kwargs):
+def post_save_classroom(sender, instance, created, **kwargs):
     if created:
         if instance.create_meeting_room():
             meeting_url = instance.create_join_link(instance.course.teacher)
