@@ -561,7 +561,7 @@ class EventRelation(models.Model):
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("event"))
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.IntegerField(db_index=True)
+    object_id = models.UUIDField(db_index=True)
     content_object = fields.GenericForeignKey("content_type", "object_id")
     distinction = models.CharField(_("distinction"), max_length=20)
 

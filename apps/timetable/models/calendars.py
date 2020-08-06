@@ -1,8 +1,8 @@
+import uuid
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
-from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -78,7 +78,6 @@ class CalendarManager(models.Manager):
                 calendar = self.model(name=str(obj))
             else:
                 calendar = self.model(name=name)
-            calendar.slug = slugify(calendar.name)
             calendar.save()
             calendar.create_relation(obj, distinction)
             return calendar
@@ -136,9 +135,8 @@ class Calendar(models.Model):
     >>> event.save()
     >>> calendar.events.add(event)
     """
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=200)
-    slug = models.SlugField(_("slug"), max_length=200, unique=True)
     objects = CalendarManager()
 
     class Meta:
@@ -174,11 +172,6 @@ class Calendar(models.Model):
     def occurrences_after(self, date=None):
         return EventListManager(self.events.all()).occurrences_after(date)
 
-    def get_absolute_url(self):
-        if USE_FULLCALENDAR:
-            return reverse("fullcalendar", kwargs={"calendar_slug": self.slug})
-        return reverse("calendar_home", kwargs={"calendar_slug": self.slug})
-
 
 class CalendarRelationManager(models.Manager):
     def create_relation(
@@ -208,7 +201,7 @@ class CalendarRelation(models.Model):
     object_id: the id of the generic object
     content_object: the generic foreign key to the generic object
     distinction: a string representing a distinction of the relation, User could
-    have a 'veiwer' relation and an 'owner' relation for example.
+    have a 'viewer' relation and an 'owner' relation for example.
     inheritable: a boolean that decides if events of the calendar should also
     inherit this relation
 
@@ -220,7 +213,7 @@ class CalendarRelation(models.Model):
         Calendar, on_delete=models.CASCADE, verbose_name=_("calendar")
     )
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.IntegerField(db_index=True)
+    object_id = models.UUIDField(db_index=True)
     content_object = fields.GenericForeignKey("content_type", "object_id")
     distinction = models.CharField(_("distinction"), max_length=20)
     inheritable = models.BooleanField(_("inheritable"), default=True)
