@@ -1,18 +1,37 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from ..models import Calendar, Event
+from ..models import Calendar, Event, Rule
 
 
 class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
-        fields = ["name"]
+        fields = ["id", "name"]
+
+
+class RuleSerializer(serializers.ModelSerializer):
+    rrule_frequency = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Rule
+        fields = ["id", "name", "description", "frequency", "params", "rrule_frequency"]
 
 
 class EventSerializer(serializers.ModelSerializer):
     calendar = CalendarSerializer(required=True)
+    rule = RuleSerializer(required=False)
 
     class Meta:
         model = Event
-        fields = ["title", "start", "end", "calendar"]
+        fields = [
+            "id",
+            "start",
+            "end",
+            "title",
+            "description",
+            "rule",
+            "end_recurring_period",
+            "calendar",
+            "color_event",
+        ]
 

@@ -46,7 +46,6 @@ class Event(models.Model):
     This model stores meta data for a date.  You can relate this data to many
     other models.
     """
-
     start = models.DateTimeField(_("start"), db_index=True)
     end = models.DateTimeField(
         _("end"),
@@ -446,31 +445,6 @@ class EventRelationManager(models.Manager):
     >>> event1.create_relation(user2, 'viewer')
     >>> event2.create_relation(user1, 'viewer')
     """
-
-    # Currently not supported
-    # Multiple level reverse lookups of generic relations appears to be
-    # unsupported in Django, which makes sense.
-    #
-    # def get_objects_for_event(self, event, model, distinction=None):
-    #     '''
-    #     returns a queryset full of instances of model, if it has an EventRelation
-    #     with event, and distinction
-    #     >>> event = Event.objects.get(title='Test1')
-    #     >>> EventRelation.objects.get_objects_for_event(event, User, 'owner')
-    #     [<User: alice>]
-    #     >>> EventRelation.objects.get_objects_for_event(event, User)
-    #     [<User: alice>, <User: bob>]
-    #     '''
-    #     if distinction:
-    #         dist_q = Q(eventrelation__distinction = distinction)
-    #     else:
-    #         dist_q = Q()
-    #     ct = ContentType.objects.get_for_model(model)
-    #     return model.objects.filter(
-    #         dist_q,
-    #         eventrelation__content_type = ct,
-    #         eventrelation__event = event
-    #     )
 
     def get_events_for_object(self, content_object, distinction="", inherit=True):
         """

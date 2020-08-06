@@ -1,4 +1,3 @@
-import uuid
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -6,7 +5,6 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from ..settings import USE_FULLCALENDAR
 from ..utils import EventListManager
 
 
@@ -135,7 +133,7 @@ class Calendar(models.Model):
     >>> event.save()
     >>> calendar.events.add(event)
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     name = models.CharField(_("name"), max_length=200)
     objects = CalendarManager()
 

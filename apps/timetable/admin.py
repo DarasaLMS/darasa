@@ -72,6 +72,6 @@ admin.site.register(Occurrence, admin.ModelAdmin)
 
 @admin.register(Rule)
 class RuleAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "description", "frequency")
     list_filter = ("frequency",)
     search_fields = ("name", "description")

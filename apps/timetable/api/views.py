@@ -1,50 +1,74 @@
 import datetime
 import pytz
+import dateutil.parser
 from django.conf import settings
 from django.db.models import F, Q
-from django.http import HttpResponseBadRequest, JsonResponse
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.response import Response
 from django.utils import timezone
-from django.views.decorators.http import require_POST
-from rest_framework.generics import ListAPIView
-from rest_framework import exceptions, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
 from ..models import Calendar, Event, Occurrence
-from ..periods import weekday_names
-from ..settings import (
-    CHECK_EVENT_PERM_FUNC,
-    CHECK_OCCURRENCE_PERM_FUNC,
-    EVENT_NAME_PLACEHOLDER,
-)
-from ..utils import check_calendar_permissions
-from .serializers import CalendarSerializer
+from .serializers import EventSerializer
 
 
-class CalendarView(ListAPIView):
-    serializer_class = CalendarSerializer
-    queryset = Calendar.objects.all()
+class EventDetailView(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView,
+):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "event_id"
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
 
 
-@check_calendar_permissions
-def api_occurrences(request):
-    start = request.GET.get("start")
-    end = request.GET.get("end")
-    calendar_slug = request.GET.get("calendar_slug")
-    timezone = request.GET.get("timezone")
+@swagger_auto_schema(
+    method="GET",
+    manual_parameters=[
+        openapi.Parameter("calendar_id", openapi.IN_PATH, type=openapi.TYPE_STRING,),
+        openapi.Parameter("start", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
+        openapi.Parameter("end", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
+        openapi.Parameter("timezone", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
+    ],
+)
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def api_occurrences(request, calendar_id, **kwargs):
+    start = request.query_params.get("start")
+    end = request.query_params.get("end")
+    timezone = request.query_params.get("timezone")
 
     try:
-        response_data = _api_occurrences(start, end, calendar_slug, timezone)
-    except (ValueError, Calendar.DoesNotExist) as e:
-        return HttpResponseBadRequest(e)
+        response_data = _api_occurrences(start, end, calendar_id, timezone)
+    except ValueError as e:
+        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Calendar.DoesNotExist as e:
+        return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response(
+            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
-    return JsonResponse(response_data, safe=False)
+    return Response(response_data)
 
 
-def _api_occurrences(start, end, calendar_slug, timezone):
+def _api_occurrences(start, end, calendar_id, timezone):
 
     if not start or not end:
         raise ValueError("Start and end parameters are required")
-    # version 2 of full calendar
-    # TODO: improve this code with date util package
+
     if "-" in start:
 
         def convert(ddatetime):
@@ -75,9 +99,9 @@ def _api_occurrences(start, end, calendar_slug, timezone):
         start = utc.localize(start)
         end = utc.localize(end)
 
-    if calendar_slug:
+    if calendar_id:
         # will raise DoesNotExist exception if no match
-        calendars = [Calendar.objects.get(slug=calendar_slug)]
+        calendars = [Calendar.objects.get(id=calendar_id)]
     # if no calendar slug is given, get all the calendars
     else:
         calendars = Calendar.objects.all()
@@ -90,7 +114,6 @@ def _api_occurrences(start, end, calendar_slug, timezone):
     # and occurrences (their events).
     # Check the "persisted" boolean value that tells it whether to change the
     # event, using the "event_id" or the occurrence with the specified "id".
-    # for more info https://github.com/llazzaro/django-scheduler/pull/169
     i = 1
     if Occurrence.objects.all().count() > 0:
         i = Occurrence.objects.latest("id").id + 1
@@ -141,43 +164,61 @@ def _api_occurrences(start, end, calendar_slug, timezone):
                     "rule": recur_rule,
                     "end_recurring_period": recur_period_end,
                     "creator": str(occurrence.event.creator),
-                    "calendar": occurrence.event.calendar.slug,
+                    "calendar_id": occurrence.event.calendar.id,
                     "cancelled": occurrence.cancelled,
                 }
             )
     return response_data
 
 
-@require_POST
-@check_calendar_permissions
-def api_move_or_resize_by_code(request):
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "existed": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+            "delta": openapi.Schema(
+                type=openapi.TYPE_NUMBER, description="delta in minutes"
+            ),
+            "resize": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+            "event_id": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def api_move_or_resize_by_code(request, occurrence_id, **kwargs):
     response_data = {}
     user = request.user
-    id = request.POST.get("id")
-    existed = bool(request.POST.get("existed") == "true")
-    delta = datetime.timedelta(minutes=int(request.POST.get("delta")))
-    resize = bool(request.POST.get("resize", False))
-    event_id = request.POST.get("event_id")
+    existed = bool(request.data.get("existed") == "true")
+    delta = datetime.timedelta(minutes=int(request.data.get("delta")))
+    resize = bool(request.data.get("resize", False))
+    event_id = request.data.get("event_id")
 
-    response_data = _api_move_or_resize_by_code(
-        user, id, existed, delta, resize, event_id
-    )
+    try:
+        response_data = _api_move_or_resize_by_code(
+            user, occurrence_id, existed, delta, resize, event_id
+        )
+    except ValueError as e:
+        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(
+            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
-    return JsonResponse(response_data)
+    return Response(response_data)
 
 
-def _api_move_or_resize_by_code(user, id, existed, delta, resize, event_id):
+def _api_move_or_resize_by_code(user, occurrence_id, existed, delta, resize, event_id):
     response_data = {}
-    response_data["status"] = "PERMISSION DENIED"
 
     if existed:
-        occurrence = Occurrence.objects.get(id=id)
+        occurrence = Occurrence.objects.get(id=occurrence_id)
         occurrence.end += delta
         if not resize:
             occurrence.start += delta
-        if CHECK_OCCURRENCE_PERM_FUNC(occurrence, user):
-            occurrence.save()
-            response_data["status"] = "OK"
+        occurrence.save()
+        response_data["status"] = "OK"
     else:
         event = Event.objects.get(id=event_id)
         dts = 0
@@ -186,37 +227,56 @@ def _api_move_or_resize_by_code(user, id, existed, delta, resize, event_id):
             event.start += delta
             dts = delta
         event.end = event.end + delta
-        if CHECK_EVENT_PERM_FUNC(event, user):
-            event.save()
-            event.occurrence_set.all().update(
-                original_start=F("original_start") + dts,
-                original_end=F("original_end") + dte,
-            )
-            response_data["status"] = "OK"
+        event.save()
+        event.occurrence_set.all().update(
+            original_start=F("original_start") + dts,
+            original_end=F("original_end") + dte,
+        )
+        response_data["status"] = "OK"
+
     return response_data
 
 
-@require_POST
-@check_calendar_permissions
-def api_select_create(request):
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "start": openapi.Schema(type=openapi.TYPE_STRING),
+            "end": openapi.Schema(type=openapi.TYPE_STRING),
+            "event_name": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def api_select_create(request, calendar_id, **kwargs):
     response_data = {}
-    start = request.POST.get("start")
-    end = request.POST.get("end")
-    calendar_slug = request.POST.get("calendar_slug")
+    start = request.data.get("start")
+    end = request.data.get("end")
+    event_name = request.data.get("event_name")
 
-    response_data = _api_select_create(start, end, calendar_slug)
+    try:
+        response_data = _api_select_create(start, end, event_name, calendar_id)
+    except ValueError as e:
+        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(
+            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
-    return JsonResponse(response_data)
+    return Response(response_data)
 
 
-def _api_select_create(start, end, calendar_slug):
+def _api_select_create(start, end, event_name, calendar_id):
+    if not start or not end:
+        raise ValueError("Start and end parameters are required")
+
     start = dateutil.parser.parse(start)
     end = dateutil.parser.parse(end)
 
-    calendar = Calendar.objects.get(slug=calendar_slug)
-    Event.objects.create(
-        start=start, end=end, title=EVENT_NAME_PLACEHOLDER, calendar=calendar
-    )
+    calendar = Calendar.objects.get(id=calendar_id)
+    Event.objects.create(start=start, end=end, title=event_name, calendar=calendar)
 
     response_data = {}
     response_data["status"] = "OK"

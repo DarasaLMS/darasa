@@ -1,16 +1,33 @@
-from django.conf.urls import url
+from django.urls import re_path
+from django.urls import path, include
 from django.views.generic.list import ListView
 from ..models import Calendar
 from .views import (
-    CalendarView,
-    api_move_or_resize_by_code,
+    EventDetailView,
     api_occurrences,
     api_select_create,
+    api_move_or_resize_by_code,
 )
 
 urlpatterns = [
-    url(r"^occurrences", api_occurrences, name="api_occurrences"),
-    url(r"^move_or_resize/$", api_move_or_resize_by_code, name="api_move_or_resize"),
-    url(r"^select_create/$", api_select_create, name="api_select_create"),
-    url(r"^$", CalendarView.as_view(), name="schedule"),
+    re_path(
+        r"^events/(?P<event_id>.+)/$",
+        EventDetailView.as_view(),
+        name="api_events",
+    ),
+    re_path(
+        r"^calendars/(?P<calendar_id>.+)/occurrences/$",
+        api_occurrences,
+        name="api_occurrences",
+    ),
+    re_path(
+        r"^calendars/(?P<calendar_id>.+)/events/$",
+        api_select_create,
+        name="api_select_create",
+    ),
+    re_path(
+        r"^occurrences/(?P<occurrence_id>.+)/change/$",
+        api_move_or_resize_by_code,
+        name="api_move_or_resize",
+    ),
 ]
