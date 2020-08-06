@@ -16,14 +16,14 @@ urlpatterns = [
         name="api_events",
     ),
     re_path(
+        r"^events/$",
+        api_select_create,
+        name="api_select_create",
+    ),
+    re_path(
         r"^calendars/(?P<calendar_id>.+)/occurrences/$",
         api_occurrences,
         name="api_occurrences",
-    ),
-    re_path(
-        r"^calendars/(?P<calendar_id>.+)/events/$",
-        api_select_create,
-        name="api_select_create",
     ),
     re_path(
         r"^occurrences/(?P<occurrence_id>.+)/change/$",

@@ -245,16 +245,18 @@ def _api_move_or_resize_by_code(user, occurrence_id, existed, delta, resize, eve
             "start": openapi.Schema(type=openapi.TYPE_STRING),
             "end": openapi.Schema(type=openapi.TYPE_STRING),
             "event_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "calendar_id": openapi.Schema(type=openapi.TYPE_STRING),
         },
     ),
 )
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
-def api_select_create(request, calendar_id, **kwargs):
+def api_select_create(request, **kwargs):
     response_data = {}
     start = request.data.get("start")
     end = request.data.get("end")
     event_name = request.data.get("event_name")
+    calendar_id = request.data.get("calendar_id")
 
     try:
         response_data = _api_select_create(start, end, event_name, calendar_id)
