@@ -195,10 +195,11 @@ def post_save_user(sender, instance, created, **kwargs):
 
     if not instance.calendar:
         # Create a user's calendar
-        calendar = Calendar.objects.create(
-            name="{}'s Calendar".format(instance.first_name)
+        calendar = Calendar.objects.get_or_create_calendar_for_object(
+            instance, name="{}'s Calendar".format(instance.first_name)
         )
         instance.calendar = calendar
+        instance.save()
 
 
 class VerificationToken(models.Model):
