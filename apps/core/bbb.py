@@ -1,12 +1,12 @@
 #
 # Darasa LMS BBB Python Wrapper
-# @author: Antony Orenge (@antorenge)
+# Author: Antony Orenge (@antorenge)
 # @version: Big Blue Button API v2.2
 #
-import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, socket
+
+import xmltodict
+import urllib.request, urllib.parse, urllib.error, socket
 import hashlib, random
-from xml.dom import minidom
-from xml.dom.minidom import Node
 
 
 def bbb_wrap_load_file(url):
@@ -15,23 +15,8 @@ def bbb_wrap_load_file(url):
 
     try:
         req = urllib.request.urlopen(url)
-        return minidom.parse(req)
-    except:
-        return False
-
-
-def assign2Dict(xml):
-    try:
-        mapping = {}
-        response = xml.firstChild
-        for child in response.childNodes:
-
-            if child.hasChildNodes():
-                mapping[child.tagName] = child.firstChild.nodeValue
-            else:
-                mapping[child.tagName] = None
-
-        return mapping
+        reqdict = xmltodict.parse(req.read())
+        return dict(reqdict.get("response"))
     except:
         return False
 
@@ -279,13 +264,13 @@ def create_meeting(
         allow_start_stop_recording,
         auto_start_recording,
     )
-    xml = bbb_wrap_load_file(create_url)
 
-    if xml:
-        return assign2Dict(xml)
+    response = bbb_wrap_load_file(create_url)
+    if response:
+        return response
 
     # if unable to reach the server
-    return None
+    return {}
 
 
 def get_meeting_info(meetingID, modPW, URL, SALT):
@@ -304,39 +289,13 @@ def get_meeting_info(meetingID, modPW, URL, SALT):
                 hasBeenForciblyEnded, running, startTime, endTime, participantCount, moderatorCount, and attendees.
     """
     _get_meeting_info_url = get_meeting_info_url(meetingID, modPW, URL, SALT)
-    xml = bbb_wrap_load_file(_get_meeting_info_url)
+    response = bbb_wrap_load_file(_get_meeting_info_url)
 
-    if xml:
-        mapping = {}
-        response = xml.firstChild
-        for child in response.childNodes:
-
-            if child.hasChildNodes():
-                # Makes a dictionary for attendees inside mapping
-                if child.tagName == "attendees":
-                    attendees = {}
-                    # Makes a dictionary for attendee inside attendees
-                    for atnds in child.childNodes:
-                        attendee = {}
-                        # Adds the elements to the attendee dictionary
-                        for atnd in atnds.childNodes:
-                            if atnd.hasChildNodes():
-                                attendee[atnd.tagName] = atnd.firstChild.nodeValue
-                            else:
-                                attendee[atnd.tagName] = None
-                        # Updates the attendees dictionary with the attendee we just parsed
-                        attendees[attendee["userID"]] = attendee
-
-                    # Once completed parsing the attendees we add that dictionary to mapping
-                    mapping[child.tagName] = attendees
-                else:
-                    mapping[child.tagName] = child.firstChild.nodeValue
-            else:
-                mapping[child.tagName] = None
-        return mapping
+    if response:
+        return response
 
     # if unable to reach the server
-    return None
+    return {}
 
 
 def get_meetings(URL, SALT):
@@ -359,43 +318,13 @@ def get_meetings(URL, SALT):
             moderatorPW, attendeePW, hasBeenForciblyEnded, running.
     """
     _get_meetings_url = get_meetings_url(URL, SALT)
-    xml = bbb_wrap_load_file(_get_meetings_url)
+    response = bbb_wrap_load_file(_get_meetings_url)
 
-    if xml:
-        mapping = {}
-        response = xml.firstChild
-        for child in response.childNodes:
-
-            if child.hasChildNodes():
-
-                # Makes a dictionary for meetings inside mapping
-                if child.tagName == "meetings":
-                    meetings = {}
-
-                    # Makes a dictionary for meeting inside meetings
-                    for mtgs in child.childNodes:
-                        meeting = {}
-
-                        # Adds the elements to the meeting dictionary
-                        for mtg in mtgs.childNodes:
-                            if mtg.hasChildNodes():
-                                meeting[mtg.tagName] = mtg.firstChild.nodeValue
-                            else:
-                                meeting[mtg.tagName] = None
-                        # Updates the meetings dictionary with the meeting we just parsed
-                        meetings[meeting["meetingID"]] = meeting
-                    # Once completed parsing the meetings we add that dictionary to mapping
-                    mapping[child.tagName] = meetings
-
-                else:
-                    mapping[child.tagName] = child.firstChild.nodeValue
-            else:
-                mapping[child.tagName] = None
-
-        return mapping
+    if response:
+        return response
 
     # if unable to reach the server
-    return None
+    return {}
 
 
 def end_meeting(meetingID, modPW, URL, SALT):
@@ -407,17 +336,17 @@ def end_meeting(meetingID, modPW, URL, SALT):
     @param URL -- the url of the bigbluebutton server
 
     @return
-        - Null if the server is unreachable
-            - A dictionary containing a returncode, messageKey, message.
+        - {} if the server is unreachable
+        - A dictionary containing a returncode, messageKey, message.
     """
     _end_meeting_url = end_meeting_url(meetingID, modPW, URL, SALT)
-    xml = bbb_wrap_load_file(_end_meeting_url)
+    response = bbb_wrap_load_file(_end_meeting_url)
 
-    if xml:
-        return assign2Dict(xml)
+    if response:
+        return response
 
     # if unable to reach the server
-    return None
+    return {}
 
 
 def is_meeting_running(meetingID, URL, SALT):
@@ -431,10 +360,10 @@ def is_meeting_running(meetingID, URL, SALT):
     @return A boolean of true if the meeting is running and false if it is not running
     """
     _is_meeting_running_url = is_meeting_running_url(meetingID, URL, SALT)
-    xml = bbb_wrap_load_file(_is_meeting_running_url)
+    response = bbb_wrap_load_file(_is_meeting_running_url)
 
-    if xml:
-        return assign2Dict(xml)
+    if response:
+        return response
 
     # if unable to reach the server
-    return None
+    return {}
