@@ -154,7 +154,7 @@ def _api_occurrences(start, end, calendar_id, timezone):
             response_data.append(
                 {
                     "id": occurrence_id,
-                    "title": occurrence.title,
+                    "name": occurrence.name,
                     "start": event_start,
                     "end": event_end,
                     "existed": existed,
@@ -244,7 +244,7 @@ def _api_move_or_resize_by_code(user, occurrence_id, existed, delta, resize, eve
         properties={
             "start": openapi.Schema(type=openapi.TYPE_STRING),
             "end": openapi.Schema(type=openapi.TYPE_STRING),
-            "event_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "classroom_id": openapi.Schema(type=openapi.TYPE_STRING),
             "calendar_id": openapi.Schema(type=openapi.TYPE_STRING),
         },
     ),
@@ -255,11 +255,11 @@ def api_select_create(request, **kwargs):
     response_data = {}
     start = request.data.get("start")
     end = request.data.get("end")
-    event_name = request.data.get("event_name")
+    classroom_id = request.data.get("classroom_id")
     calendar_id = request.data.get("calendar_id")
 
     try:
-        response_data = _api_select_create(start, end, event_name, calendar_id)
+        response_data = _api_select_create(start, end, classroom_id, calendar_id)
     except ValueError as e:
         return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -270,15 +270,16 @@ def api_select_create(request, **kwargs):
     return Response(response_data)
 
 
-def _api_select_create(start, end, event_name, calendar_id):
+def _api_select_create(start, end, classroom_id, calendar_id):
     if not start or not end:
         raise ValueError("Start and end parameters are required")
 
     start = dateutil.parser.parse(start)
     end = dateutil.parser.parse(end)
 
+    classroom = Classroom.objects.get(id=classroom_id)
     calendar = Calendar.objects.get(id=calendar_id)
-    Event.objects.create(start=start, end=end, title=event_name, calendar=calendar)
+    Event.objects.create(start=start, end=end, classroom=classroom, calendar=calendar)
 
     response_data = {}
     response_data["status"] = "OK"

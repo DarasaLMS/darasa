@@ -1,22 +1,59 @@
 from django.contrib import admin
-from .models import Course, Classroom, Request
+from .models import Course, Classroom, ClassroomGroup, Request
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     model = Course
-    list_display = ("title", "description", "date_modified")
+    list_display = ("name", "description", "date_modified")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "description",
+                    "cover",
+                    "teacher",
+                    "assistant_teacher",
+                    "students",
+                )
+            },
+        ),
+    )
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
 
+
+class ClassroomGroupInline(admin.StackedInline):
+    model = ClassroomGroup
+    extra = 1
 
 
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
     model = Classroom
     list_display = ("name", "course", "meeting_id", "date_modified")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "description",
+                    "course",
+                    "meeting_id",
+                    "moderator_password",
+                    "attendee_password",
+                    "welcome_message",
+                    "duration",
+                )
+            },
+        ),
+    )
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
+    inlines = (ClassroomGroupInline,)
 
 
 @admin.register(Request)

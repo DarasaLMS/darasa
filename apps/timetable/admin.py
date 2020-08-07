@@ -45,18 +45,17 @@ class EventRelationAdmin(admin.ModelAdmin):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ("title", "start", "end")
+    list_display = ("classroom", "start", "end")
     list_filter = ("start",)
     ordering = ("-start",)
     date_hierarchy = "start"
-    search_fields = ("title", "description")
+    search_fields = ("classroom__name", "classroom__description")
     fieldsets = (
         (
             None,
             {
                 "fields": [
-                    ("title", "color_event"),
-                    ("description",),
+                    ("classroom", "color_event"),
                     ("start", "end"),
                     ("creator", "calendar"),
                     ("rule", "end_recurring_period"),

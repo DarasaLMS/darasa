@@ -108,24 +108,27 @@ class Calendar(models.Model):
     events: all the events contained within the calendar.
     >>> calendar = Calendar(name = 'Test Calendar')
     >>> calendar.save()
+    >>> classroom1 = Classroom.objects.create(name="Recent Classroom")
     >>> data = {
-    ...         'title': 'Recent Event',
+    ...         'classroom': classroom1,
     ...         'start': datetime.datetime(2008, 1, 5, 0, 0),
     ...         'end': datetime.datetime(2008, 1, 10, 0, 0)
     ...        }
     >>> event = Event(**data)
     >>> event.save()
     >>> calendar.events.add(event)
+    >>> classroom2 = Classroom.objects.create(name="Upcoming Classroom")
     >>> data = {
-    ...         'title': 'Upcoming Event',
+    ...         'classroom': classroom2,
     ...         'start': datetime.datetime(2008, 1, 1, 0, 0),
     ...         'end': datetime.datetime(2008, 1, 4, 0, 0)
     ...        }
     >>> event = Event(**data)
     >>> event.save()
     >>> calendar.events.add(event)
+    >>> classroom3 = Classroom.objects.create(name="Current Classroom")
     >>> data = {
-    ...         'title': 'Current Event',
+    ...         'classroom': classroom3,
     ...         'start': datetime.datetime(2008, 1, 3),
     ...         'end': datetime.datetime(2008, 1, 6)
     ...        }

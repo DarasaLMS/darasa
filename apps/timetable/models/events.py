@@ -9,6 +9,7 @@ from django.template.defaultfilters import date
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
+from apps.core.models import BaseModel
 from ..models.calendars import Calendar
 from ..models.rules import Rule
 from ..utils import OccurrenceReplacer
@@ -41,29 +42,22 @@ class EventManager(models.Manager):
         )
 
 
-class Event(models.Model):
+class Event(BaseModel):
     """
     This model stores meta data for a date.  You can relate this data to many
     other models.
     """
+
     start = models.DateTimeField(_("start"), db_index=True)
     end = models.DateTimeField(
         _("end"),
         db_index=True,
         help_text=_("The end time must be later than the start time."),
     )
-    title = models.CharField(_("title"), max_length=255)
-    description = models.TextField(_("description"), blank=True)
-    creator = models.ForeignKey(
-        django_settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_("creator"),
-        related_name="creator",
+    classroom = models.OneToOneField(
+        "classrooms.Classroom", on_delete=models.CASCADE, verbose_name=_("classroom")
     )
-    created_on = models.DateTimeField(_("created on"), auto_now_add=True)
-    updated_on = models.DateTimeField(_("updated on"), auto_now=True)
+
     rule = models.ForeignKey(
         Rule,
         on_delete=models.SET_NULL,
@@ -82,7 +76,8 @@ class Event(models.Model):
     calendar = models.ForeignKey(
         Calendar, on_delete=models.CASCADE, verbose_name=_("calendar")
     )
-    color_event = models.CharField(_("Color event"), blank=True, max_length=10)
+    color_event = models.CharField(_("color event"), blank=True, max_length=10)
+
     objects = EventManager()
 
     class Meta:
@@ -91,8 +86,8 @@ class Event(models.Model):
         index_together = (("start", "end"),)
 
     def __str__(self):
-        return gettext("%(title)s: %(start)s - %(end)s") % {
-            "title": self.title,
+        return gettext("%(name)s: %(start)s - %(end)s") % {
+            "name": self.classroom.name,
             "start": date(self.start, django_settings.DATE_FORMAT),
             "end": date(self.end, django_settings.DATE_FORMAT),
         }
@@ -426,15 +421,17 @@ class EventRelationManager(models.Manager):
     >>> import datetime
     >>> EventRelation.objects.all().delete()
     >>> CalendarRelation.objects.all().delete()
+    >>> classroom1 = Classroom.objects.create(name="Classroom 1")
     >>> data = {
-    ...         'title': 'Test1',
+    ...         'classroom': classroom1,
     ...         'start': datetime.datetime(2008, 1, 1),
     ...         'end': datetime.datetime(2008, 1, 11)
     ...        }
     >>> Event.objects.all().delete()
     >>> event1 = Event(**data)
     >>> event1.save()
-    >>> data['title'] = 'Test2'
+    >>> classroom2 = Classroom.objects.create(name="Classroom 2")
+    >>> data['classroom'] = classroom2
     >>> event2 = Event(**data)
     >>> event2.save()
     >>> user1 = User(username='alice')
@@ -456,7 +453,8 @@ class EventRelationManager(models.Manager):
         distinctions that any calendar that it belongs to has, as long as the
         relation has inheritable set to True.  (See Calendar)
 
-        >>> event = Event.objects.get(title='Test1')
+        >>> classroom1 = Classroom.objects.create(name="Classroom 1")
+        >>> event = Event.objects.get(classroom=classroom1)
         >>> user = User.objects.get(username = 'alice')
         >>> EventRelation.objects.get_events_for_object(user, 'owner', inherit=False)
         [<Event: Test1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
@@ -471,7 +469,8 @@ class EventRelationManager(models.Manager):
         >>> calendar.save()
 
         And an event that belongs to that calendar
-        >>> event = Event.objects.get(title='Test2')
+        >>> classroom2 = Classroom.objects.create(name="Classroom 2")
+        >>> event = Event.objects.get(classroom=classroom2)
         >>> calendar.events.add(event)
 
         If we relate this calendar to some object with inheritable set to true,
@@ -548,13 +547,13 @@ class EventRelation(models.Model):
 
     def __str__(self):
         return "{}({})-{}".format(
-            self.event.title, self.distinction, self.content_object
+            self.event.classroom, self.distinction, self.content_object
         )
 
 
 class Occurrence(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("event"))
-    title = models.CharField(_("title"), max_length=255, blank=True)
+    name = models.CharField(_("name"), max_length=255, blank=True)
     description = models.TextField(_("description"), blank=True)
     start = models.DateTimeField(_("start"), db_index=True)
     end = models.DateTimeField(_("end"), db_index=True)
@@ -571,10 +570,10 @@ class Occurrence(models.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.title and self.event_id:
-            self.title = self.event.title
+        if not self.name and self.event_id:
+            self.name = self.event.classroom.name
         if not self.description and self.event_id:
-            self.description = self.event.description
+            self.description = self.event.classroom.description
 
     def moved(self):
         return self.original_start != self.start or self.original_end != self.end

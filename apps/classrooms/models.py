@@ -1,5 +1,6 @@
 import time
 import uuid
+import random
 from django.conf import settings
 from django.dispatch import receiver
 from django.db import models
@@ -7,9 +8,7 @@ from django.db.models.signals import post_save, pre_save
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
-from django.template.defaultfilters import slugify
 from sorl.thumbnail import ImageField
-from apps.timetable.models import Event, Occurrence
 from apps.core.models import BaseModel
 from apps.core.tasks import send_email
 from apps.core.bbb import (
@@ -18,7 +17,7 @@ from apps.core.bbb import (
     end_meeting,
     join_meeting_url,
 )
-from apps.accounts.models import User, Student, Teacher
+from apps.accounts.models import Student, Teacher
 
 CLASSROOM_MODERATOR_TXT = get_template("emails/classroom_moderator.txt")
 CLASSROOM_MODERATOR_HTML = get_template("emails/classroom_moderator.txt")
@@ -32,19 +31,31 @@ REQUEST_DECLINED_HTML = get_template("emails/request_declined.html")
 
 class Course(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=256)
-    description = models.TextField(blank=True)
-    cover = ImageField(upload_to="covers/%Y/%m", default="covers/default/cover.png")
+    name = models.CharField(_("name"), max_length=256)
+    description = models.TextField(_("description"), blank=True)
+    cover = ImageField(
+        upload_to="covers/%Y/%m",
+        default="covers/default/cover.png",
+        verbose_name=_("cover image"),
+    )
     teacher = models.ForeignKey(
-        Teacher, on_delete=models.PROTECT, related_name="teacher"
+        Teacher,
+        on_delete=models.PROTECT,
+        related_name="teacher",
+        verbose_name=_("teacher"),
     )
     assistant_teacher = models.ForeignKey(
-        Teacher, on_delete=models.PROTECT, related_name="assistant_teacher"
+        Teacher,
+        on_delete=models.PROTECT,
+        related_name="assistant_teacher",
+        verbose_name=_("assistant teacher"),
+        null=True,
+        blank=True,
     )
-    students = models.ManyToManyField(Student)
+    students = models.ManyToManyField(Student, verbose_name=_("students"))
 
     def __str__(self):
-        return "{}".format(self.title)
+        return "{}".format(self.name)
 
 
 class Classroom(BaseModel):
@@ -52,39 +63,51 @@ class Classroom(BaseModel):
         if Classroom.objects.all().count() == 0:
             return random.randrange(100000, 1000000000)
         else:
-            return Classroom.objects.latest("created_at").meeting_id + 1
+            return Classroom.objects.latest("date_created").meeting_id + 1
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=200, unique=True)
-    course = models.ForeignKey(Course, on_delete=models.PROTECT)
-    event = models.OneToOneField(Event, on_delete=models.CASCADE)
+    name = models.CharField(_("name"), max_length=255)
+    description = models.TextField(_("description"), blank=True)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        verbose_name=_("course"),
+        null=True,
+        blank=True,
+    )
 
     meeting_id = models.IntegerField(
-        _("Meeting ID"),
+        _("meeting ID"),
         help_text=_("The meeting number which need to be unique."),
         unique=True,
         default=get_meeting_id,
     )
     welcome_message = models.CharField(
-        _("Welcome message"),
+        _("welcome message"),
         help_text=_("Message which displayed on the chat window."),
         max_length=200,
         blank=True,
     )
     logout_url = models.URLField(
-        _("Logout URL"),
+        _("logout URL"),
         help_text=_("URL to which users will be redirected."),
         default=settings.BBB_LOGOUT_URL,
     )
 
-    moderator_password = models.CharField(max_length=120, null=True)
-    attendee_password = models.CharField(max_length=120, null=True)
+    moderator_password = models.CharField(
+        _("moderator password"), max_length=120, null=True
+    )
+    attendee_password = models.CharField(
+        _("attendee password"), max_length=120, null=True
+    )
     # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
-    duration = models.PositiveIntegerField(default=0)
+    duration = models.PositiveIntegerField(_("duration"), default=0)
 
     groups = models.ManyToManyField(
-        Course, through="ClassroomGroup", related_name="course_classroom_groups"
+        Course,
+        through="ClassroomGroup",
+        related_name="course_classroom_groups",
+        verbose_name=_("groups"),
     )
 
     def __str__(self):
@@ -128,19 +151,19 @@ class Classroom(BaseModel):
         if is_teacher:
             moderator = True
 
-        is_student = user in self.students.all()
+        is_student = user in self.course.students.all()
 
         if is_teacher or is_student:
-            response = join_meeting_url(
+            url = join_meeting_url(
                 self.meeting_id,
-                str(self.user),
-                str(user.id),
+                str(user),
+                str(user.user.id),
                 self.moderator_password if moderator else self.attendee_password,
                 settings.BBB_URL,
                 settings.BBB_SECRET,
             )
             # Send email with join link
-            return response.get("url")
+            return url
 
         return None
 
@@ -165,12 +188,9 @@ class Classroom(BaseModel):
             self.save()
             info_response = self.get_meeting_info()
             if info_response.get("returncode") == "SUCCESS":
-                print(info_response)
+                return info_response
 
-
-@receiver(pre_save, sender=Classroom)
-def pre_save_classroom(sender, instance, **kwargs):
-    instance.slug = slugify(instance.name)
+        return response
 
 
 @receiver(post_save, sender=Classroom)
@@ -187,9 +207,9 @@ def post_save_classroom(sender, instance, created, **kwargs):
             text_content = CLASSROOM_MODERATOR_TXT.render(data)
             html_content = CLASSROOM_MODERATOR_HTML.render(data)
             send_email.delay(
-                "Join Classroom {}".format(instance.classroom),
+                "Join Classroom {}".format(instance.name),
                 text_content,
-                instance.student.user.email,
+                instance.course.teacher.user.email,
                 html_content=html_content,
             )
 
@@ -198,20 +218,18 @@ class ClassroomGroup(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     name = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=200, unique=True)
 
     def __str__(self):
         return "{}".format(self.name)
 
 
-@receiver(pre_save, sender=ClassroomGroup)
-def pre_save_user(sender, instance, **kwargs):
-    instance.slug = slugify(instance.name)
-
-
 class StudentAttendance(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    occurrence = models.ForeignKey(Occurrence, on_delete=models.CASCADE)
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, verbose_name=_("student")
+    )
+    occurrence = models.ForeignKey(
+        "timetable.Occurrence", on_delete=models.CASCADE, verbose_name=_("occurrence")
+    )
     joined_at = models.DateTimeField(null=True, blank=True)
     left_at = models.DateTimeField(null=True, blank=True)
 
