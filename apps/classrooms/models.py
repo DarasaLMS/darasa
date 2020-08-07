@@ -50,7 +50,7 @@ class Course(BaseModel):
 class Classroom(BaseModel):
     def get_meeting_id():
         if Classroom.objects.all().count() == 0:
-            return randrange(100000, 1000000)
+            return random.randrange(100000, 1000000000)
         else:
             return Classroom.objects.latest("created_at").meeting_id + 1
 
