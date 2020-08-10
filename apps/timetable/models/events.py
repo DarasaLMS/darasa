@@ -75,7 +75,7 @@ class Event(BaseModel):
         db_index=True,
         help_text=_("This date is ignored for one time only events."),
     )
-    color_event = models.CharField(_("color event"), blank=True, max_length=10)
+    color = models.CharField(_("color"), blank=True, max_length=10)
 
     objects = EventManager()
 

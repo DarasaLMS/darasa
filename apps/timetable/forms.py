@@ -7,4 +7,4 @@ class EventAdminForm(forms.ModelForm):
     class Meta:
         exclude = []
         model = Event
-        widgets = {"color_event": ColorInput}
+        widgets = {"color": ColorInput}

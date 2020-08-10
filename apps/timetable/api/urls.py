@@ -5,7 +5,7 @@ from ..models import Calendar
 from .views import (
     EventDetailView,
     api_occurrences,
-    api_select_create,
+    api_create_event,
     api_move_or_resize_by_code,
 )
 
@@ -17,8 +17,8 @@ urlpatterns = [
     ),
     re_path(
         r"^events/$",
-        api_select_create,
-        name="api_select_create",
+        api_create_event,
+        name="api_create_event",
     ),
     re_path(
         r"^calendars/(?P<calendar_id>.+)/occurrences/$",

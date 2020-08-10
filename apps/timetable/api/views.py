@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
+from apps.core.permissions import IsOwnerOrReadOnly
 from ..models import Calendar, Event, Occurrence
 from .serializers import EventSerializer
 
@@ -19,9 +20,9 @@ class EventDetailView(
     mixins.DestroyModelMixin,
     generics.GenericAPIView,
 ):
-    queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = Event.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     lookup_url_kwarg = "event_id"
 
     def get(self, request, *args, **kwargs):
@@ -159,7 +160,7 @@ def _api_occurrences(start, end, calendar_id, timezone):
                     "end": event_end,
                     "existed": existed,
                     "event_id": occurrence.event.id,
-                    "color": occurrence.event.color_event,
+                    "color": occurrence.event.color,
                     "description": occurrence.description,
                     "rule": recur_rule,
                     "end_recurring_period": recur_period_end,
@@ -168,6 +169,7 @@ def _api_occurrences(start, end, calendar_id, timezone):
                     "cancelled": occurrence.cancelled,
                 }
             )
+
     return response_data
 
 
@@ -186,7 +188,7 @@ def _api_occurrences(start, end, calendar_id, timezone):
     ),
 )
 @api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated, IsOwnerOrReadOnly])
 def api_move_or_resize_by_code(request, occurrence_id, **kwargs):
     response_data = {}
     user = request.user
@@ -246,20 +248,47 @@ def _api_move_or_resize_by_code(user, occurrence_id, existed, delta, resize, eve
             "end": openapi.Schema(type=openapi.TYPE_STRING),
             "classroom_id": openapi.Schema(type=openapi.TYPE_STRING),
             "calendar_id": openapi.Schema(type=openapi.TYPE_STRING),
+            "rule_id": openapi.Schema(type=openapi.TYPE_STRING),
+            "end_recurring_period": openapi.Schema(type=openapi.TYPE_STRING),
+            "color": openapi.Schema(type=openapi.TYPE_STRING),
         },
+        required=["start", "end", "classroom_id", "calendar_id"],
     ),
 )
 @api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated])
-def api_select_create(request, **kwargs):
-    response_data = {}
+@permission_classes([permissions.IsAuthenticated, IsOwnerOrReadOnly])
+def api_create_event(request, **kwargs):
     start = request.data.get("start")
     end = request.data.get("end")
     classroom_id = request.data.get("classroom_id")
     calendar_id = request.data.get("calendar_id")
+    rule_id = request.data.get("rule_id")
+    end_recurring_period = request.data.get("end_recurring_period", None)
+    color = request.data.get("color", None)
 
     try:
-        response_data = _api_select_create(start, end, classroom_id, calendar_id)
+        if not start or not end:
+            raise ValueError("Start and end parameters are required")
+
+        start = dateutil.parser.parse(start)
+        end = dateutil.parser.parse(end)
+
+        classroom = generics.get_object_or_404(Classroom, id=classroom_id)
+        calendar = generics.get_object_or_404(Calendar, id=calendar_id)
+        rule = Calendar.objects.filter(id=rule_id).first()
+
+        event = Event.objects.create(
+            start=start,
+            end=end,
+            classroom=classroom,
+            calendar=calendar,
+            rule=rule,
+            end_recurring_period=end_recurring_period,
+            color=color,
+        )
+
+        return Response(EventSerializer(event))
+
     except ValueError as e:
         return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -267,20 +296,3 @@ def api_select_create(request, **kwargs):
             {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    return Response(response_data)
-
-
-def _api_select_create(start, end, classroom_id, calendar_id):
-    if not start or not end:
-        raise ValueError("Start and end parameters are required")
-
-    start = dateutil.parser.parse(start)
-    end = dateutil.parser.parse(end)
-
-    classroom = Classroom.objects.get(id=classroom_id)
-    calendar = Calendar.objects.get(id=calendar_id)
-    Event.objects.create(start=start, end=end, classroom=classroom, calendar=calendar)
-
-    response_data = {}
-    response_data["status"] = "OK"
-    return response_data

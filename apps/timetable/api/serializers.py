@@ -40,6 +40,6 @@ class EventSerializer(serializers.ModelSerializer):
             "rule",
             "end_recurring_period",
             "calendar",
-            "color_event",
+            "color",
         ]
 
