@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.template.defaultfilters import date
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
 from apps.core.models import BaseModel
@@ -57,6 +56,9 @@ class Event(BaseModel):
     classroom = models.OneToOneField(
         "classrooms.Classroom", on_delete=models.CASCADE, verbose_name=_("classroom")
     )
+    calendar = models.ForeignKey(
+        Calendar, on_delete=models.CASCADE, verbose_name=_("calendar")
+    )
 
     rule = models.ForeignKey(
         Rule,
@@ -72,9 +74,6 @@ class Event(BaseModel):
         blank=True,
         db_index=True,
         help_text=_("This date is ignored for one time only events."),
-    )
-    calendar = models.ForeignKey(
-        Calendar, on_delete=models.CASCADE, verbose_name=_("calendar")
     )
     color_event = models.CharField(_("color event"), blank=True, max_length=10)
 
@@ -103,9 +102,6 @@ class Event(BaseModel):
     @property
     def hours(self):
         return float(self.seconds) / 3600
-
-    def get_absolute_url(self):
-        return reverse("event", args=[self.id])
 
     def get_occurrences(self, start, end, clear_prefetch=True):
         """
@@ -604,63 +600,6 @@ class Occurrence(models.Model):
     @property
     def hours(self):
         return float(self.seconds) / 3600
-
-    def get_absolute_url(self):
-        if self.pk is not None:
-            return reverse(
-                "occurrence",
-                kwargs={"occurrence_id": self.pk, "event_id": self.event.id},
-            )
-        return reverse(
-            "occurrence_by_date",
-            kwargs={
-                "event_id": self.event.id,
-                "year": self.start.year,
-                "month": self.start.month,
-                "day": self.start.day,
-                "hour": self.start.hour,
-                "minute": self.start.minute,
-                "second": self.start.second,
-            },
-        )
-
-    def get_cancel_url(self):
-        if self.pk is not None:
-            return reverse(
-                "cancel_occurrence",
-                kwargs={"occurrence_id": self.pk, "event_id": self.event.id},
-            )
-        return reverse(
-            "cancel_occurrence_by_date",
-            kwargs={
-                "event_id": self.event.id,
-                "year": self.start.year,
-                "month": self.start.month,
-                "day": self.start.day,
-                "hour": self.start.hour,
-                "minute": self.start.minute,
-                "second": self.start.second,
-            },
-        )
-
-    def get_edit_url(self):
-        if self.pk is not None:
-            return reverse(
-                "edit_occurrence",
-                kwargs={"occurrence_id": self.pk, "event_id": self.event.id},
-            )
-        return reverse(
-            "edit_occurrence_by_date",
-            kwargs={
-                "event_id": self.event.id,
-                "year": self.start.year,
-                "month": self.start.month,
-                "day": self.start.day,
-                "hour": self.start.hour,
-                "minute": self.start.minute,
-                "second": self.start.second,
-            },
-        )
 
     def __str__(self):
         return gettext("%(start)s to %(end)s") % {
