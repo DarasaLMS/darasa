@@ -6,6 +6,8 @@ from rest_framework import exceptions, permissions, status, viewsets, generics, 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from apps.accounts.models import Student
+from apps.core.permissions import IsOwnerOrReadOnly
 from ..models import Course, Classroom, Request
 from .serializers import (
     CourseSerializer,
@@ -85,3 +87,18 @@ class RequestView(
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class UserClassroomView(generics.ListAPIView):
+    serializer_class = ClassroomSerializer
+    queryset = Classroom.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get("user_id", None)
+        if user_id:
+            student = Student.objects.filter(user__id=user_id).first()
+            self.queryset = self.queryset.filter(
+                Q(course__teacher__user__id=user_id) | Q(course__students__in=[student])
+            )
+        return super().get(self, request, *args, **kwargs)
