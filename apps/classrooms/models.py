@@ -190,6 +190,7 @@ class Classroom(BaseModel):
 def post_save_classroom(sender, instance, created, **kwargs):
     if created:
         if instance.create_meeting_room():
+            # Send join link to moderator
             meeting_url = instance.create_join_link(instance.course.teacher)
             data = {
                 "first_name": instance.course.teacher.user.first_name,
@@ -253,7 +254,7 @@ class Request(BaseModel):
 
 
 @receiver(post_save, sender=Request)
-def _process_request(sender, instance, created, **kwargs):
+def post_save_request(sender, instance, created, **kwargs):
     if instance._status != instance.status:
         if instance.status == Request.ACCEPTED:
             instance.course.students.add(instance.student)
