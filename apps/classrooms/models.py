@@ -103,13 +103,6 @@ class Classroom(BaseModel):
     # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
     duration = models.PositiveIntegerField(_("duration"), default=0)
 
-    groups = models.ManyToManyField(
-        Course,
-        through="ClassroomGroup",
-        related_name="course_classroom_groups",
-        verbose_name=_("groups"),
-    )
-
     def __str__(self):
         return "{}".format(self.name)
 
@@ -212,15 +205,6 @@ def post_save_classroom(sender, instance, created, **kwargs):
                 instance.course.teacher.user.email,
                 html_content=html_content,
             )
-
-
-class ClassroomGroup(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
-    name = models.CharField(max_length=256)
-
-    def __str__(self):
-        return "{}".format(self.name)
 
 
 class StudentAttendance(models.Model):
