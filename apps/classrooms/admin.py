@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Classroom, ClassroomGroup, Request
+from .models import Course, Classroom, Request
 
 
 @admin.register(Course)
@@ -25,11 +25,6 @@ class CourseAdmin(admin.ModelAdmin):
     ordering = ["-date_modified"]
 
 
-class ClassroomGroupInline(admin.StackedInline):
-    model = ClassroomGroup
-    extra = 1
-
-
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
     model = Classroom
@@ -53,7 +48,6 @@ class ClassroomAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
-    inlines = (ClassroomGroupInline,)
 
 
 @admin.register(Request)
