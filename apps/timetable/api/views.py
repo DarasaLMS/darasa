@@ -10,8 +10,9 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
 from apps.core.permissions import IsOwnerOrReadOnly
-from ..models import Calendar, Event, Occurrence
-from .serializers import EventSerializer
+from apps.classrooms.models import Classroom
+from ..models import Calendar, Event, Occurrence, Rule
+from .serializers import EventSerializer, RuleSerializer
 
 
 class EventDetailView(
@@ -33,6 +34,12 @@ class EventDetailView(
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+
+class RuleViewset(viewsets.ModelViewSet):
+    serializer_class = RuleSerializer
+    queryset = Rule.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @swagger_auto_schema(
@@ -164,7 +171,7 @@ def _api_occurrences(start, end, calendar_id, timezone):
                     "description": occurrence.description,
                     "rule": recur_rule,
                     "end_recurring_period": recur_period_end,
-                    "creator": str(occurrence.event.creator),
+                    "created_by": str(occurrence.event.created_by),
                     "calendar_id": occurrence.event.calendar.id,
                     "cancelled": occurrence.cancelled,
                 }
@@ -262,7 +269,7 @@ def api_create_event(request, **kwargs):
     end = request.data.get("end")
     classroom_id = request.data.get("classroom_id")
     calendar_id = request.data.get("calendar_id")
-    rule_id = request.data.get("rule_id")
+    rule_id = request.data.get("rule_id", None)
     end_recurring_period = request.data.get("end_recurring_period", None)
     color = request.data.get("color", None)
 
@@ -273,9 +280,12 @@ def api_create_event(request, **kwargs):
         start = dateutil.parser.parse(start)
         end = dateutil.parser.parse(end)
 
-        classroom = generics.get_object_or_404(Classroom, id=classroom_id)
-        calendar = generics.get_object_or_404(Calendar, id=calendar_id)
-        rule = Calendar.objects.filter(id=rule_id).first()
+        classroom = Classroom.objects.get(id=classroom_id)
+        calendar = Calendar.objects.get(id=calendar_id)
+
+        rule = None
+        if rule_id:
+            rule = Calendar.objects.filter(id=rule_id).first()
 
         event = Event.objects.create(
             start=start,
@@ -287,12 +297,11 @@ def api_create_event(request, **kwargs):
             color=color,
         )
 
-        return Response(EventSerializer(event))
+        return Response(EventSerializer(instance=event).data)
 
-    except ValueError as e:
-        return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
+    except (ValueError, Classroom.DoesNotExist, Calendar.DoesNotExist) as e:
         return Response(
-            {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"message": str(e), "class": e.__class__.__name__},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
