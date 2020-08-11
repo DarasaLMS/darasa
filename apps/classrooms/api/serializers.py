@@ -23,6 +23,12 @@ class CourseSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ["id", "name"]
+
+
 class ClassroomSerializer(serializers.ModelSerializer):
     course = CourseSerializer(many=False, read_only=True)
 
@@ -38,6 +44,14 @@ class ClassroomSerializer(serializers.ModelSerializer):
             "duration",
             "date_modified",
         ]
+
+
+class MiniClassroomSerializer(serializers.ModelSerializer):
+    course = CourseSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Classroom
+        fields = ["id", "name", "course", "meeting_id"]
 
 
 class RequestSerializer(serializers.ModelSerializer):
