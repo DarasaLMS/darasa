@@ -190,27 +190,29 @@ class Classroom(BaseModel):
 
         return response
 
+    def send_moderator_join_link(self):
+        meeting_url = self.create_join_link(self.course.teacher)
+        data = {
+            "first_name": self.course.teacher.user.first_name,
+            "classroom": self.name,
+            "meeting_url": meeting_url,
+            "site_name": settings.SITE_NAME,
+        }
+        text_content = CLASSROOM_MODERATOR_TXT.render(data)
+        html_content = CLASSROOM_MODERATOR_HTML.render(data)
+        send_email.delay(
+            "Join Classroom {}".format(self.name),
+            text_content,
+            self.course.teacher.user.email,
+            html_content=html_content,
+        )
+
 
 @receiver(post_save, sender=Classroom)
 def post_save_classroom(sender, instance, created, **kwargs):
     if created:
         if instance.create_meeting_room():
-            # Send join link to moderator
-            meeting_url = instance.create_join_link(instance.course.teacher)
-            data = {
-                "first_name": instance.course.teacher.user.first_name,
-                "classroom": instance.name,
-                "meeting_url": meeting_url,
-                "site_name": settings.SITE_NAME,
-            }
-            text_content = CLASSROOM_MODERATOR_TXT.render(data)
-            html_content = CLASSROOM_MODERATOR_HTML.render(data)
-            send_email.delay(
-                "Join Classroom {}".format(instance.name),
-                text_content,
-                instance.course.teacher.user.email,
-                html_content=html_content,
-            )
+            instance.send_moderator_join_link()
 
 
 class StudentAttendance(models.Model):
@@ -257,39 +259,45 @@ class Request(BaseModel):
         super().__init__(*args, **kwargs)
         self._status = self.status
 
+    def send_student_join_link(self):
+        self.course.students.add(self.student)
+        meeting_url = self.classroom.create_join_link(self.student)
+        data = {
+            "first_name": self.student.user.first_name,
+            "classroom": self.classroom.name,
+            "meeting_url": meeting_url,
+            "site_name": settings.SITE_NAME,
+        }
+        text_content = REQUEST_ACCEPTED_TXT.render(data)
+        html_content = REQUEST_ACCEPTED_HTML.render(data)
+        send_email.delay(
+            "Join classroom {}".format(self.classroom.name),
+            text_content,
+            self.student.user.email,
+            html_content=html_content,
+        )
+
+    def send_student_decline_email(self):
+        data = {
+            "first_name": self.student.user.first_name,
+            "classroom": self.classroom.name,
+            "site_name": settings.SITE_NAME,
+        }
+        text_content = REQUEST_DECLINED_TXT.render(data)
+        html_content = REQUEST_DECLINED_HTML.render(data)
+        send_email.delay(
+            "Request declined for classroom {}".format(self.classroom).name,
+            text_content,
+            self.student.user.email,
+            html_content=html_content,
+        )
+
 
 @receiver(post_save, sender=Request)
 def post_save_request(sender, instance, created, **kwargs):
     if instance._status != instance.status:
         if instance.status == Request.ACCEPTED:
-            instance.course.students.add(instance.student)
-            meeting_url = instance.classroom.create_join_link(instance.student)
-            data = {
-                "first_name": instance.student.user.first_name,
-                "classroom": instance.classroom.name,
-                "meeting_url": meeting_url,
-                "site_name": settings.SITE_NAME,
-            }
-            text_content = REQUEST_ACCEPTED_TXT.render(data)
-            html_content = REQUEST_ACCEPTED_HTML.render(data)
-            send_email.delay(
-                "Join Classroom {}".format(instance.classroom.name),
-                text_content,
-                instance.student.user.email,
-                html_content=html_content,
-            )
+            instance.send_student_join_link()
 
         if instance.status == Request.DECLINED:
-            data = {
-                "first_name": instance.student.user.first_name,
-                "classroom": instance.classroom.name,
-                "site_name": settings.SITE_NAME,
-            }
-            text_content = REQUEST_DECLINED_TXT.render(data)
-            html_content = REQUEST_DECLINED_HTML.render(data)
-            send_email.delay(
-                "Request declined for Classroom {}".format(instance.classroom).name,
-                text_content,
-                instance.student.user.email,
-                html_content=html_content,
-            )
+            instance.send_student_decline_email()
