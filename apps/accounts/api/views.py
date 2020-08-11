@@ -22,16 +22,17 @@ class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
 
 
-class UserView(ListCreateAPIView):
+class UserLisCreateView(ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
 
-class UserDetailView(RetrieveAPIView):
+class UserRetrieveView(RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "user_id"
 
 
 @swagger_auto_schema(

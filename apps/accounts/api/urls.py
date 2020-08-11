@@ -2,8 +2,8 @@ from django.urls import re_path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from .views import (
     LoginView,
-    UserView,
-    UserDetailView,
+    UserLisCreateView,
+    UserRetrieveView,
     verify_email,
     resend_email_verification,
     password_reset_verify,
@@ -19,9 +19,11 @@ urlpatterns = [
     re_path(
         r"^token/verification/$", TokenVerifyView.as_view(), name="login_token_verify",
     ),
-    re_path(r"^users/$", UserView.as_view(), name="user_view"),
+    re_path(r"^users/$", UserLisCreateView.as_view(), name="user_list_create_view"),
     re_path(
-        r"^users/(?P<user_id>.+)/$", UserDetailView.as_view(), name="user_detail_view"
+        r"^users/(?P<user_id>.+)/$",
+        UserRetrieveView.as_view(),
+        name="user_retrieve_view",
     ),
     re_path(r"^email/verification/$", verify_email, name="email_verification",),
     re_path(
