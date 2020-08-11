@@ -100,8 +100,13 @@ class Classroom(BaseModel):
     attendee_password = models.CharField(
         _("attendee password"), max_length=120, null=True
     )
-    # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
-    duration = models.PositiveIntegerField(_("duration"), default=0)
+    duration = models.PositiveIntegerField(
+        _("duration"),
+        default=0,
+        help_text=_(
+            "Duration of the meeting in minutes. Default is 0 (meeting doesn't end)."
+        ),
+    )
 
     def __str__(self):
         return "{}".format(self.name)
