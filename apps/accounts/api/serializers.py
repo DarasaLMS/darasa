@@ -76,6 +76,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "picture",
             "role",
+            "calendar",
             "is_staff",
             "is_active",
             "date_joined",
