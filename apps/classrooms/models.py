@@ -277,13 +277,18 @@ class Request(BaseModel):
     def process_student_request(self):
         classrooms = []
         if self.course.classroom_join_mode == Course.JOIN_ALL:
-            classrooms = self.course.classrooms()
+            classrooms = self.course.classrooms
         elif self.course.classroom_join_mode == Course.CHOOSE_TO_JOIN:
             classrooms = self.classrooms.all()
 
         if self.status == Request.ACCEPTED:
             # Add student to course
             self.course.students.add(self.student)
+            # Add classroom to student's calendar
+            for classroom in classrooms:
+                if classroom.event:
+                    classroom.event.calendars.add(self.student.user.calendar)
+
             self.send_student_accept_email(classrooms)
 
         elif self.status == Request.DECLINED:
