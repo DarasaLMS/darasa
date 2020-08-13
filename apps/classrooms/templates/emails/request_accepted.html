@@ -3,15 +3,15 @@
 </p>
 <br />
 <p>
-  Your request to enroll in {{ course }} has been accepted.
+  Your request to enroll in course {{ course }} has been accepted.
 </p>
 <p>
-  Classrooms are shown below:
+  The course classrooms are as follows:
 </p>
 <ul>
   {% for classroom in classrooms %}
   <li>
-    {{ classroom }}: {% if classroom.recurring.rule %} {{ classroom.recurring.rule }} {% endif %} from
+    {{ classroom }} {% if classroom.recurring.rule %}: {{ classroom.recurring.rule }} {% endif %} from
     {{ classroom.start_date }} to {{ classroom.end_date }}
     {% if classroom.recurring.end_recurring_period %} until {{ classroom.recurring.end_recurring_period }} {% endif %}
   </li>
