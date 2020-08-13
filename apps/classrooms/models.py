@@ -73,6 +73,11 @@ class Course(BaseModel):
     def __str__(self):
         return "{}".format(self.name)
 
+    @property
+    def students_count(self):
+        return self.students.count()
+
+    @property
     def classrooms(self):
         return self.classroom_set.all()
 
