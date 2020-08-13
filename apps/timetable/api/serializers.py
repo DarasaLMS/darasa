@@ -27,7 +27,6 @@ class RuleSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     classroom = MiniClassroomSerializer()
-    calendar = CalendarSerializer()
     rule = RuleSerializer(required=False)
 
     class Meta:
@@ -39,7 +38,6 @@ class EventSerializer(serializers.ModelSerializer):
             "classroom",
             "rule",
             "end_recurring_period",
-            "calendar",
             "color",
         ]
 

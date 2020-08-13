@@ -1,6 +1,6 @@
 Hi {{ first_name }},
 
-Sorry, your request to join classroom {{ classroom }} has been rejected.
+Sorry, your request to enroll in {{ course }} has been declined.
 
 It might be the class is already full.
 

@@ -1,10 +1,13 @@
 Hi {{ first_name }},
 
-Your request to join classroom {{ classroom }} has been approved.
+Your request to enroll in {{ course }} has been accepted.
 
-You can join using this link: <a href="{{ meeting_url }}">{{ meeting_url }}</a>
+Classrooms are shown below:
 
-If you have problems, please paste the above URL into your web browser.
+{% for classroom in classrooms %}
+- {{ classroom }}: {% if classroom.recurring.rule %} {{ classroom.recurring.rule }} {% endif %} from {{ classroom.start_date }} to {{ classroom.end_date }}
+  {% if classroom.recurring.end_recurring_period %} until  {{ classroom.recurring.end_recurring_period }} {% endif %}
+{% endfor %}
 
 Thanks,
 The {{ site_name }} Team

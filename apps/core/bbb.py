@@ -228,6 +228,7 @@ def create_meeting(
     duration=0,
     allow_start_stop_recording=True,
     auto_start_recording=False,
+    **kwargs
 ):
     """This method creates a meeting and return an array of the xml packet
 
@@ -263,6 +264,7 @@ def create_meeting(
         duration,
         allow_start_stop_recording,
         auto_start_recording,
+        **kwargs
     )
 
     response = bbb_wrap_load_file(create_url)

@@ -162,17 +162,16 @@ def _api_occurrences(start, end, calendar_id, timezone):
             response_data.append(
                 {
                     "id": occurrence_id,
-                    "name": occurrence.name,
+                    "title": occurrence.name,
+                    "description": occurrence.description,
                     "start": event_start,
                     "end": event_end,
                     "existed": existed,
                     "event_id": occurrence.event.id,
                     "color": occurrence.event.color,
-                    "description": occurrence.description,
                     "rule": recur_rule,
                     "end_recurring_period": recur_period_end,
                     "created_by": str(occurrence.event.created_by),
-                    "calendar_id": occurrence.event.calendar.id,
                     "cancelled": occurrence.cancelled,
                 }
             )
@@ -291,11 +290,11 @@ def api_create_event(request, **kwargs):
             start=start,
             end=end,
             classroom=classroom,
-            calendar=calendar,
             rule=rule,
             end_recurring_period=end_recurring_period,
             color=color,
         )
+        event.calendars.add(calendar)
 
         return Response(EventSerializer(instance=event).data)
 

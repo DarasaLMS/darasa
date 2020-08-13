@@ -19,7 +19,10 @@ class CourseSerializer(serializers.ModelSerializer):
             "assistant_teacher",
             "students",
             "feedback_set",
+            "date_created",
+            "created_by",
             "date_modified",
+            "modified_by",
         ]
 
 
@@ -42,7 +45,10 @@ class ClassroomSerializer(serializers.ModelSerializer):
             "welcome_message",
             "logout_url",
             "duration",
+            "date_created",
+            "created_by",
             "date_modified",
+            "modified_by",
         ]
 
 
@@ -61,4 +67,14 @@ class RequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Request
-        fields = ["id", "student", "teacher", "classroom", "status", "date_modified"]
+        fields = [
+            "id",
+            "student",
+            "teacher",
+            "classroom",
+            "status",
+            "date_created",
+            "created_by",
+            "date_modified",
+            "modified_by",
+        ]

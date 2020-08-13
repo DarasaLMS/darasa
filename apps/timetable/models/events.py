@@ -56,9 +56,7 @@ class Event(BaseModel):
     classroom = models.OneToOneField(
         "classrooms.Classroom", on_delete=models.CASCADE, verbose_name=_("classroom")
     )
-    calendar = models.ForeignKey(
-        Calendar, on_delete=models.CASCADE, verbose_name=_("calendar")
-    )
+    calendars = models.ManyToManyField(Calendar, verbose_name=_("calendars"))
 
     rule = models.ForeignKey(
         Rule,
@@ -453,12 +451,12 @@ class EventRelationManager(models.Manager):
         >>> event = Event.objects.get(classroom=classroom1)
         >>> user = User.objects.get(username = 'alice')
         >>> EventRelation.objects.get_events_for_object(user, 'owner', inherit=False)
-        [<Event: Test1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
+        [<Event: Classroom 1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
 
         If a distinction is not declared it will not vet the relations based on
         distinction.
         >>> EventRelation.objects.get_events_for_object(user, inherit=False)
-        [<Event: Test1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>, <Event: Test2: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
+        [<Event: Classroom 1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>, <Event: Classroom 2: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
 
         Now if there is a Calendar
         >>> calendar = Calendar(name = 'MyProject')
@@ -474,21 +472,21 @@ class EventRelationManager(models.Manager):
         >>> user = User.objects.get(username='bob')
         >>> cr = calendar.create_relation(user, 'viewer', True)
         >>> EventRelation.objects.get_events_for_object(user, 'viewer')
-        [<Event: Test1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>, <Event: Test2: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
+        [<Event: Classroom 1: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>, <Event: Classroom 2: Tuesday, Jan. 1, 2008-Friday, Jan. 11, 2008>]
         """
         ct = ContentType.objects.get_for_model(type(content_object))
         if distinction:
             dist_q = Q(eventrelation__distinction=distinction)
-            cal_dist_q = Q(calendar__calendarrelation__distinction=distinction)
+            cal_dist_q = Q(calendars__calendarrelation__distinction=distinction)
         else:
             dist_q = Q()
             cal_dist_q = Q()
         if inherit:
             inherit_q = Q(
                 cal_dist_q,
-                calendar__calendarrelation__content_type=ct,
-                calendar__calendarrelation__object_id=content_object.id,
-                calendar__calendarrelation__inheritable=True,
+                calendars__calendarrelation__content_type=ct,
+                calendars__calendarrelation__object_id=content_object.id,
+                calendars__calendarrelation__inheritable=True,
             )
         else:
             inherit_q = Q()

@@ -5,7 +5,6 @@ from .models import (
     CalendarRelation,
     Event,
     EventRelation,
-    Occurrence,
     Rule,
 )
 
@@ -35,14 +34,6 @@ class CalendarRelationAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(EventRelation)
-class EventRelationAdmin(admin.ModelAdmin):
-    list_display = ("event", "content_object", "distinction")
-    fieldsets = (
-        (None, {"fields": ["event", ("content_type", "object_id", "distinction")]}),
-    )
-
-
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ("classroom", "start", "end")
@@ -57,7 +48,7 @@ class EventAdmin(admin.ModelAdmin):
                 "fields": [
                     ("start", "end"),
                     "classroom",
-                    "calendar",
+                    "calendars",
                     "color",
                     "rule",
                     "end_recurring_period",
@@ -68,7 +59,12 @@ class EventAdmin(admin.ModelAdmin):
     form = EventAdminForm
 
 
-admin.site.register(Occurrence, admin.ModelAdmin)
+@admin.register(EventRelation)
+class EventRelationAdmin(admin.ModelAdmin):
+    list_display = ("event", "content_object", "distinction")
+    fieldsets = (
+        (None, {"fields": ["event", ("content_type", "object_id", "distinction")]}),
+    )
 
 
 @admin.register(Rule)

@@ -25,22 +25,3 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-
-
-class Setting(models.Model):
-    ALL_UPON_REGISTRATION = "all_upon_registation"
-    UPON_REQUEST = "upon_request"
-    COURSE_ENROLL_MODES = (
-        (ALL_UPON_REGISTRATION, _("Enroll to all courses upon registration")),
-        (UPON_REQUEST, _("Enroll to a course upon request")),
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    enroll_mode = models.CharField(
-        _("Course enroll mode"),
-        max_length=32,
-        choices=COURSE_ENROLL_MODES,
-        default=ALL_UPON_REGISTRATION,
-    )
-    verify_teacher = models.BooleanField(default=False)
-

@@ -1,5 +1,6 @@
 import time
 import uuid
+import string
 import random
 from django.conf import settings
 from django.dispatch import receiver
@@ -12,15 +13,14 @@ from sorl.thumbnail import ImageField
 from apps.core.models import BaseModel
 from apps.core.tasks import send_email
 from apps.core.bbb import (
-    get_meeting_info,
     create_meeting,
-    end_meeting,
     join_meeting_url,
+    is_meeting_running,
+    get_meeting_info,
+    end_meeting,
 )
-from apps.accounts.models import Student, Teacher
-
-CLASSROOM_MODERATOR_TXT = get_template("emails/classroom_moderator.txt")
-CLASSROOM_MODERATOR_HTML = get_template("emails/classroom_moderator.txt")
+from apps.accounts.models import Student, Teacher, EducationalStage
+from .utils import get_random_password
 
 REQUEST_ACCEPTED_TXT = get_template("emails/request_accepted.txt")
 REQUEST_ACCEPTED_HTML = get_template("emails/request_accepted.html")
@@ -30,6 +30,13 @@ REQUEST_DECLINED_HTML = get_template("emails/request_declined.html")
 
 
 class Course(BaseModel):
+    JOIN_ALL = "join_all"
+    CHOOSE_TO_JOIN = "choose_to_join"
+    CLASSROOM_JOIN_MODES = (
+        (JOIN_ALL, _("Join all clasrooms in this course")),
+        (CHOOSE_TO_JOIN, _("Choose to join a classroom")),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=256)
     description = models.TextField(_("description"), blank=True)
@@ -52,10 +59,22 @@ class Course(BaseModel):
         null=True,
         blank=True,
     )
-    students = models.ManyToManyField(Student, verbose_name=_("students"))
+    students = models.ManyToManyField(Student, verbose_name=_("students"), blank=True)
+    educational_stages = models.ManyToManyField(
+        EducationalStage, verbose_name=_("educational stages"), blank=True
+    )
+    classroom_join_mode = models.CharField(
+        _("classroom join mode"),
+        max_length=32,
+        choices=CLASSROOM_JOIN_MODES,
+        default=JOIN_ALL,
+    )
 
     def __str__(self):
         return "{}".format(self.name)
+
+    def classrooms(self):
+        return self.classroom_set.all()
 
 
 class Classroom(BaseModel):
@@ -95,10 +114,10 @@ class Classroom(BaseModel):
     )
 
     moderator_password = models.CharField(
-        _("moderator password"), max_length=120, null=True
+        _("moderator password"), max_length=120, default=get_random_password
     )
     attendee_password = models.CharField(
-        _("attendee password"), max_length=120, null=True
+        _("attendee password"), max_length=120, default=get_random_password
     )
     duration = models.PositiveIntegerField(
         _("duration"),
@@ -112,11 +131,22 @@ class Classroom(BaseModel):
         return "{}".format(self.name)
 
     @property
-    def ongoing(self):
-        return True
+    def start_date(self):
+        return self.event_set.start
 
-    def create_meeting_room(self):
-        callback_url = "{}/{}/classrooms/m/{}/end/".format(
+    @property
+    def end_date(self):
+        return self.event_set.end
+
+    @property
+    def recurring(self):
+        return {
+            "rule": self.event_set.rule,
+            "end_recurring_period": self.event_set.end_recurring_period,
+        }
+
+    def create_meeting(self, mobile=False):
+        callback_url = "{}/{}/classrooms/meetings/{}/end/".format(
             settings.SITE_URL, settings.API_VERSION, self.meeting_id
         )
         response = create_meeting(
@@ -133,23 +163,20 @@ class Classroom(BaseModel):
         )
 
         if response.get("returncode") == "SUCCESS":
-            self.moderator_password = response.get("moderatorPW")
-            self.attendee_password = response.get("attendeePW")
-            self.save()
             return True
 
-        self.save()
         return False
 
     def create_join_link(self, user, moderator=False):
-        if not self.meeting_id:
-            self.create_meeting_room()
+        # create meeting room is idempotent.
+        # Always a good idea to call each time to ensure meeting exists.
+        self.create_meeting()
 
-        is_teacher = user == self.course.teacher
+        is_teacher = user == self.course.teacher.user
         if is_teacher:
             moderator = True
 
-        is_student = user in self.course.students.all()
+        is_student = Course.objects.filter(id=self.course.id, students__user=user)
 
         if is_teacher or is_student:
             url = join_meeting_url(
@@ -160,10 +187,18 @@ class Classroom(BaseModel):
                 settings.BBB_URL,
                 settings.BBB_SECRET,
             )
-            # Send email with join link
             return url
 
         return None
+
+    def is_meeting_running(self):
+        response = is_meeting_running(
+            self.meeting_id, settings.BBB_URL, settings.BBB_SECRET,
+        )
+        if response.get("returncode") == "SUCCESS":
+            return True
+
+        return False
 
     def get_meeting_info(self):
         response = get_meeting_info(
@@ -182,37 +217,9 @@ class Classroom(BaseModel):
             settings.BBB_SECRET,
         )
         if response.get("returncode") == "SUCCESS":
-            self.ongoing = False
-            self.save()
-            info_response = self.get_meeting_info()
-            if info_response.get("returncode") == "SUCCESS":
-                return info_response
+            return True
 
-        return response
-
-    def send_moderator_join_link(self):
-        meeting_url = self.create_join_link(self.course.teacher)
-        data = {
-            "first_name": self.course.teacher.user.first_name,
-            "classroom": self.name,
-            "meeting_url": meeting_url,
-            "site_name": settings.SITE_NAME,
-        }
-        text_content = CLASSROOM_MODERATOR_TXT.render(data)
-        html_content = CLASSROOM_MODERATOR_HTML.render(data)
-        send_email.delay(
-            "Join Classroom {}".format(self.name),
-            text_content,
-            self.course.teacher.user.email,
-            html_content=html_content,
-        )
-
-
-@receiver(post_save, sender=Classroom)
-def post_save_classroom(sender, instance, created, **kwargs):
-    if created:
-        if instance.create_meeting_room():
-            instance.send_moderator_join_link()
+        return False
 
 
 class StudentAttendance(models.Model):
@@ -245,6 +252,9 @@ class Request(BaseModel):
         Teacher, on_delete=models.CASCADE, null=True, blank=True
     )
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    classrooms = models.ManyToManyField(
+        Classroom, blank=True, help_text=_("Preferred classrooms to join")
+    )
     status = models.CharField(max_length=16, choices=STATUS, default=PENDING)
 
     _status = None
@@ -259,19 +269,32 @@ class Request(BaseModel):
         super().__init__(*args, **kwargs)
         self._status = self.status
 
-    def send_student_join_link(self):
-        self.course.students.add(self.student)
-        meeting_url = self.classroom.create_join_link(self.student)
+    def process_student_request(self):
+        classrooms = []
+        if self.course.classroom_join_mode == Course.JOIN_ALL:
+            classrooms = self.course.classrooms()
+        elif self.course.classroom_join_mode == Course.CHOOSE_TO_JOIN:
+            classrooms = self.classrooms.all()
+
+        if self.status == Request.ACCEPTED:
+            # Add student to course
+            self.course.students.add(self.student)
+            self.send_student_accept_email(classrooms)
+
+        elif self.status == Request.DECLINED:
+            self.send_student_decline_email()
+
+    def send_student_accept_email(self, classrooms):
         data = {
             "first_name": self.student.user.first_name,
-            "classroom": self.classroom.name,
-            "meeting_url": meeting_url,
+            "course": self.course,
+            "classrooms": classrooms,
             "site_name": settings.SITE_NAME,
         }
         text_content = REQUEST_ACCEPTED_TXT.render(data)
         html_content = REQUEST_ACCEPTED_HTML.render(data)
         send_email.delay(
-            "Join classroom {}".format(self.classroom.name),
+            "Request to enroll in {} has been accepted".format(self.course.name),
             text_content,
             self.student.user.email,
             html_content=html_content,
@@ -280,13 +303,13 @@ class Request(BaseModel):
     def send_student_decline_email(self):
         data = {
             "first_name": self.student.user.first_name,
-            "classroom": self.classroom.name,
+            "course": self.course.name,
             "site_name": settings.SITE_NAME,
         }
         text_content = REQUEST_DECLINED_TXT.render(data)
         html_content = REQUEST_DECLINED_HTML.render(data)
         send_email.delay(
-            "Request declined for classroom {}".format(self.classroom).name,
+            "Request to enroll in {} has been declined".format(self.course.name),
             text_content,
             self.student.user.email,
             html_content=html_content,
@@ -295,9 +318,10 @@ class Request(BaseModel):
 
 @receiver(post_save, sender=Request)
 def post_save_request(sender, instance, created, **kwargs):
-    if instance._status != instance.status:
-        if instance.status == Request.ACCEPTED:
-            instance.send_student_join_link()
+    if created:
+        instance.teacher = instance.course.teacher
+        instance.save()
 
-        if instance.status == Request.DECLINED:
-            instance.send_student_decline_email()
+    if instance._status == Request.PENDING and instance._status != instance.status:
+        instance.process_student_request()
+

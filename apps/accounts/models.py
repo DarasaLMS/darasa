@@ -14,6 +14,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
+from django.apps import apps
 from sorl.thumbnail import ImageField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
@@ -191,8 +192,15 @@ def post_save_user(sender, instance, created, **kwargs):
     if created:
         instance.send_verification_email()
 
-    # If email has changed
-    if instance._email.lower() != instance.email.lower():
+        if instance.role == User.STUDENT:
+            student_model = apps.get_model("accounts", "student")
+            student_model.objects.get_or_create(user=instance)
+        elif instance.role == User.TEACHER:
+            teacher_model = apps.get_model("accounts", "teacher")
+            teacher_model.objects.get_or_create(user=instance)
+
+    elif instance._email.lower() != instance.email.lower():
+        # If email has changed
         instance.send_verification_email()
 
     if not instance.calendar:
@@ -230,7 +238,6 @@ class EducationalStage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
-    courses = models.ManyToManyField("classrooms.Course")
 
     def __str__(self):
         return "{}".format(self.name)
@@ -341,11 +348,26 @@ def delete_document_if_verified(sender, instance, **kwargs):
 
 
 class School(models.Model):
+    ENROLL_ALL = "enroll_all"
+    CHOOSE_TO_ENROLL = "choose_to_enroll"
+    COURSE_ENROLL_MODES = (
+        (ENROLL_ALL, _("Enroll to all courses per student's educational stage")),
+        (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
     logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
+    color = models.CharField(_("color"), blank=True, max_length=10)
     phone = PhoneNumberField(_("Phone number"), blank=True)
     email = models.EmailField(_("Email address"), unique=True)
+    enroll_mode = models.CharField(
+        _("course enroll mode"),
+        max_length=32,
+        choices=COURSE_ENROLL_MODES,
+        default=CHOOSE_TO_ENROLL,
+    )
+    allow_teacher_verification = models.BooleanField(default=False)
 
     def __str__(self):
         return "{}".format(self.name)

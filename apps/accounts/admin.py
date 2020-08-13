@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.template.loader import render_to_string
-from .models import User, Student, Teacher
-from .forms import UserAddForm, UserChangeForm
+from .models import User, Student, Teacher, EducationalStage, School
+from .forms import UserAddForm, UserChangeForm, SchoolAdminForm
 
 
 @admin.register(User)
@@ -69,12 +69,48 @@ class UserAdmin(UserAdmin):
     render_picture.short_description = "Picture"
 
 
+@admin.register(EducationalStage)
+class EducationalStageAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+
+
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ("user",)
+    list_display = ("user", "educational_stage")
 
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ("user",)
+    list_display = ("user", "bio", "verified", "verification_file")
+
+
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "logo",
+        "color",
+        "phone",
+        "email",
+        "enroll_mode",
+        "allow_teacher_verification",
+    )
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": [
+                    "name",
+                    "logo",
+                    "color",
+                    "phone",
+                    "email",
+                    "enroll_mode",
+                    "allow_teacher_verification",
+                ]
+            },
+        ),
+    )
+    form = SchoolAdminForm
 

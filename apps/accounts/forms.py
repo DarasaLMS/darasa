@@ -1,8 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.utils.translation import ugettext_lazy as _
-from .models import User
-from .widgets import ImageUploaderWidget
+from .models import User, School
+from .widgets import ImageUploaderWidget, ColorInput
 
 
 class UserAddForm(forms.ModelForm):
@@ -65,3 +65,11 @@ class UserChangeForm(forms.ModelForm):
 
     def clean_password(self):
         return self.initial["password"]
+
+
+class SchoolAdminForm(forms.ModelForm):
+    class Meta:
+        exclude = []
+        model = School
+        widgets = {"color": ColorInput}
+
