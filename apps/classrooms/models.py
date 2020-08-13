@@ -132,17 +132,17 @@ class Classroom(BaseModel):
 
     @property
     def start_date(self):
-        return self.event_set.start
+        return self.event.start
 
     @property
     def end_date(self):
-        return self.event_set.end
+        return self.event.end
 
     @property
     def recurring(self):
         return {
-            "rule": self.event_set.rule,
-            "end_recurring_period": self.event_set.end_recurring_period,
+            "rule": self.event.rule,
+            "end_recurring_period": self.event.end_recurring_period,
         }
 
     def create_meeting(self, mobile=False):
@@ -294,7 +294,7 @@ class Request(BaseModel):
         text_content = REQUEST_ACCEPTED_TXT.render(data)
         html_content = REQUEST_ACCEPTED_HTML.render(data)
         send_email.delay(
-            "Request to enroll in {} has been accepted".format(self.course.name),
+            "Request to enroll in course {} has been accepted".format(self.course.name),
             text_content,
             self.student.user.email,
             html_content=html_content,
@@ -309,7 +309,7 @@ class Request(BaseModel):
         text_content = REQUEST_DECLINED_TXT.render(data)
         html_content = REQUEST_DECLINED_HTML.render(data)
         send_email.delay(
-            "Request to enroll in {} has been declined".format(self.course.name),
+            "Request to enroll in course {} has been declined".format(self.course.name),
             text_content,
             self.student.user.email,
             html_content=html_content,
