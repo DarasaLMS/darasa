@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.template.loader import render_to_string
+from django.contrib.auth.models import Group
 from .models import User, Student, Teacher, EducationalStage, School
-from .forms import UserAddForm, UserChangeForm, SchoolAdminForm
+from .forms import UserAddForm, UserChangeForm, SchoolAdminForm, GroupAdminForm
 
 
 @admin.register(User)
@@ -67,6 +68,15 @@ class UserAdmin(UserAdmin):
         return render_to_string("picture.html", {"picture": obj.picture})
 
     render_picture.short_description = "Picture"
+
+
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    form = GroupAdminForm
+    filter_horizontal = ["permissions"]
 
 
 @admin.register(EducationalStage)
