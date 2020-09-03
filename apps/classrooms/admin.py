@@ -15,7 +15,7 @@ class CourseAdmin(admin.ModelAdmin):
                     "description",
                     "cover",
                     "teacher",
-                    "assistant_teacher",
+                    "assistant_teachers",
                     "students",
                 )
             },

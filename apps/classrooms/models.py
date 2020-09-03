@@ -51,12 +51,10 @@ class Course(BaseModel):
         related_name="teacher",
         verbose_name=_("teacher"),
     )
-    assistant_teacher = models.ForeignKey(
+    assistant_teachers = models.ManyToManyField(
         Teacher,
-        on_delete=models.PROTECT,
-        related_name="assistant_teacher",
-        verbose_name=_("assistant teacher"),
-        null=True,
+        related_name="assistant_teachers",
+        verbose_name=_("assistant teachers"),
         blank=True,
     )
     students = models.ManyToManyField(Student, verbose_name=_("students"), blank=True)
@@ -87,15 +85,29 @@ class Course(BaseModel):
 
 class Topic(models.Model):
     course = models.ForeignKey(
-        Course,
-        on_delete=models.PROTECT,
-        verbose_name=_("course"),
-        null=True,
-        blank=True,
+        Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
     name = models.CharField(_("name"), max_length=255)
     notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE)
+
+
+class Information(models.Model):
+    FAQ = "faq"
+    ANNOUNCEMENT = "announcement"
+    INFO_CATEGORIES = (
+        (FAQ, _("Frequently asked questions")),
+        (ANNOUNCEMENT, _("Announcements")),
+    )
+
+    course = models.ForeignKey(
+        Course, on_delete=models.PROTECT, verbose_name=_("course"),
+    )
+    category = models.CharField(
+        _("category"), max_length=32, choices=INFO_CATEGORIES, default=ANNOUNCEMENT,
+    )
+    name = models.CharField(_("name"), max_length=255)
+    description = models.TextField(_("description"), blank=True)
 
 
 class Classroom(BaseModel):
@@ -109,11 +121,7 @@ class Classroom(BaseModel):
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
     course = models.ForeignKey(
-        Course,
-        on_delete=models.PROTECT,
-        verbose_name=_("course"),
-        null=True,
-        blank=True,
+        Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
 
     meeting_id = models.IntegerField(
