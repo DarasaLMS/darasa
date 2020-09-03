@@ -85,6 +85,19 @@ class Course(BaseModel):
         pass
 
 
+class Topic(models.Model):
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.PROTECT,
+        verbose_name=_("course"),
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(_("name"), max_length=255)
+    notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
+    parent = models.ForeignKey("self", on_delete=models.CASCADE)
+
+
 class Classroom(BaseModel):
     def get_meeting_id():
         if Classroom.objects.all().count() == 0:
