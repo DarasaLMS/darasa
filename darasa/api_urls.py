@@ -8,14 +8,14 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     re_path(
-        r"^accounts/",
-        include(("apps.accounts.api.urls", "accounts-api"), namespace="accounts-api"),
-    ),
-    re_path(
-        r"^classrooms/",
+        r"^",
         include(
             ("apps.classrooms.api.urls", "classrooms-api"), namespace="classrooms-api"
         ),
+    ),
+    re_path(
+        r"^accounts/",
+        include(("apps.accounts.api.urls", "accounts-api"), namespace="accounts-api"),
     ),
     re_path(
         r"^feedback/",

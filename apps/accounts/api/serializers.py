@@ -6,62 +6,7 @@ from rest_framework.exceptions import ValidationError
 from ..models import User, Student, Teacher
 
 
-class StudentSerializer(serializers.ModelSerializer):
-    active_classes = serializers.ReadOnlyField()
-    pending_requests = serializers.ReadOnlyField()
-    approved_requests = serializers.ReadOnlyField()
-    rejected_requests = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Student
-        fields = [
-            "user",
-            "active_classes",
-            "pending_requests",
-            "approved_requests",
-            "rejected_requests",
-        ]
-
-
-class MiniStudentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Student
-        fields = ["user"]
-
-
-class TeacherSerializer(serializers.ModelSerializer):
-    courses = serializers.ReadOnlyField()
-    classrooms = serializers.ReadOnlyField()
-    duration = serializers.ReadOnlyField()
-    feedback = serializers.ReadOnlyField()
-    rating = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Teacher
-        fields = [
-            "user",
-            "verification_file",
-            "verified",
-            "bio",
-            "courses",
-            "classrooms",
-            "duration",
-            "feedback",
-            "rating",
-        ]
-        read_only_fields = ["verified"]
-
-
-class MiniTeacherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Teacher
-        fields = ["user", "bio"]
-
-
 class UserSerializer(serializers.ModelSerializer):
-    student = StudentSerializer(required=False, allow_null=True)
-    teacher = TeacherSerializer(required=False, allow_null=True)
-
     class Meta:
         model = User
         fields = (
@@ -81,8 +26,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_active",
             "date_joined",
             "last_login",
-            "student",
-            "teacher",
         )
         read_only_fields = (
             "email_verified",
@@ -153,9 +96,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MiniUserSerializer(serializers.ModelSerializer):
-    student = MiniStudentSerializer(required=False, allow_null=True)
-    teacher = MiniTeacherSerializer(required=False, allow_null=True)
-
     class Meta:
         model = User
         fields = (
@@ -167,13 +107,40 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "picture",
-            "role",
-            "is_staff",
-            "is_active",
-            "student",
-            "teacher",
         )
-        read_only_fields = ("is_staff", "is_active")
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
+
+    class Meta:
+        model = Student
+        fields = ["user"]
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
+
+    class Meta:
+        model = Teacher
+        fields = [
+            "user",
+            "bio",
+            "verified",
+            "verification_file",
+        ]
+        read_only_fields = ["verified", "verification_file"]
+
+
+class MiniTeacherSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
+
+    class Meta:
+        model = Teacher
+        fields = [
+            "user",
+            "bio",
+        ]
 
 
 class LoginSerializer(TokenObtainPairSerializer):

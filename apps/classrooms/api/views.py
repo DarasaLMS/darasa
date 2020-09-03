@@ -17,15 +17,19 @@ from .serializers import (
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
-
     filter_backends = [DjangoFilterBackend]
 
 
+class ClassroomCreateView(generics.CreateAPIView):
+    queryset = Classroom.objects.all()
+    serializer_class = ClassroomSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 class ClassroomView(
-    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -36,9 +40,6 @@ class ClassroomView(
     permission_classes = [permissions.IsAuthenticated]
 
     lookup_url_kwarg = "classroom_id"
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -89,7 +90,7 @@ class RequestView(
         return self.destroy(request, *args, **kwargs)
 
 
-class UserClassroomView(generics.ListAPIView):
+class UserClassroomsView(generics.ListAPIView):
     serializer_class = ClassroomSerializer
     queryset = Classroom.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -99,6 +100,25 @@ class UserClassroomView(generics.ListAPIView):
         if user_id:
             student = Student.objects.filter(user__id=user_id).first()
             self.queryset = self.queryset.filter(
-                Q(course__teacher__user__id=user_id) | Q(course__students__in=[student])
+                Q(course__teacher__user__id=user_id)
+                | Q(course__assistant_teacher__user__id=user_id)
+                | Q(course__students__in=[student])
+            )
+        return super().get(self, request, *args, **kwargs)
+
+
+class UserCoursesView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+    queryset = Course.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get("user_id", None)
+        if user_id:
+            student = Student.objects.filter(user__id=user_id).first()
+            self.queryset = self.queryset.filter(
+                Q(teacher__user__id=user_id)
+                | Q(assistant_teacher__user__id=user_id)
+                | Q(students__in=[student])
             )
         return super().get(self, request, *args, **kwargs)
