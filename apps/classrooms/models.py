@@ -81,6 +81,9 @@ class Course(BaseModel):
     def classrooms(self):
         return self.classroom_set.all()
 
+    def progress(self):
+        pass
+
 
 class Classroom(BaseModel):
     def get_meeting_id():
