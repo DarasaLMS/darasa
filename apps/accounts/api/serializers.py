@@ -3,10 +3,18 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
-from ..models import User, Student, Teacher
+from ..models import User, Student, Teacher, EducationalStage
+
+
+class EducationalStageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationalStage
+        fields = ["name", "description"]
 
 
 class MiniStudentSerializer(serializers.ModelSerializer):
+    educational_stage = EducationalStageSerializer(many=False, read_only=True)
+
     class Meta:
         model = Student
         fields = ["educational_stage"]
