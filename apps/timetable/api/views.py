@@ -168,6 +168,15 @@ def _api_occurrences(start, end, calendar_id, timezone):
                     "end": event_end,
                     "existed": existed,
                     "event_id": occurrence.event.id,
+                    "classroom": {
+                        "name": occurrence.event.classroom.name,
+                        "duration": occurrence.event.classroom.duration,
+                        "meeting_id": occurrence.event.classroom.meeting_id,
+                    },
+                    "course": {
+                        "name": occurrence.event.classroom.course.name,
+                        "teacher": str(occurrence.event.classroom.course.teacher),
+                    },
                     "color": occurrence.event.color,
                     "rule": recur_rule,
                     "end_recurring_period": recur_period_end,
