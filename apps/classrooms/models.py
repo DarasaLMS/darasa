@@ -148,13 +148,6 @@ class Classroom(BaseModel):
     attendee_password = models.CharField(
         _("attendee password"), max_length=120, default=get_random_password
     )
-    duration = models.PositiveIntegerField(
-        _("duration"),
-        default=0,
-        help_text=_(
-            "Duration of the meeting in minutes. Default is 0 (meeting doesn't end)."
-        ),
-    )
 
     def __str__(self):
         return "{}".format(self.name)
@@ -174,7 +167,7 @@ class Classroom(BaseModel):
             "end_recurring_period": self.event.end_recurring_period,
         }
 
-    def create_meeting(self, mobile=False):
+    def create_meeting(self, duration=0):
         callback_url = "{}/{}/classrooms/meetings/{}/end/".format(
             settings.SITE_URL, settings.API_VERSION, self.meeting_id
         )
@@ -188,7 +181,7 @@ class Classroom(BaseModel):
             callback_url,
             settings.BBB_URL,
             settings.BBB_SECRET,
-            self.duration,
+            duration,  # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
         )
 
         if response.get("returncode") == "SUCCESS":
