@@ -206,13 +206,13 @@ class Classroom(BaseModel):
         if is_teacher:
             moderator = True
 
-        is_student = Course.objects.filter(id=self.course.id, students__user=user)
+        is_student = Course.objects.filter(id=self.course.id, students__user__in=[user])
 
         if is_teacher or is_student:
             url = join_meeting_url(
                 self.meeting_id,
                 str(user),
-                str(user.user.id),
+                str(user.id),
                 self.moderator_password if moderator else self.attendee_password,
                 settings.BBB_URL,
                 settings.BBB_SECRET,
