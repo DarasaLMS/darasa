@@ -1,7 +1,6 @@
 from django.conf import settings
 from rest_framework import serializers
 from apps.accounts.api.serializers import (
-    MiniTeacherSerializer,
     StudentSerializer,
     TeacherSerializer,
 )
@@ -9,8 +8,8 @@ from ..models import Course, Classroom, Request
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    teacher = MiniTeacherSerializer(many=False, read_only=True)
-    assistant_teachers = MiniTeacherSerializer(many=True, read_only=True)
+    teacher = TeacherSerializer(many=False, read_only=True)
+    assistant_teachers = TeacherSerializer(many=True, read_only=True)
     students = StudentSerializer(many=True, read_only=True)
 
     class Meta:
