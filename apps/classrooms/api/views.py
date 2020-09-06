@@ -8,6 +8,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
+from apps.core.validators import is_valid_uuid
 from ..models import Course, Classroom, Request
 from .serializers import (
     CourseSerializer,
@@ -97,13 +98,20 @@ class UserClassroomsView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         user_id = kwargs.get("user_id", None)
+        if not is_valid_uuid(user_id):
+            raise exceptions.ValidationError("Invalid user_id")
+
         if user_id:
-            student = Student.objects.filter(user__id=user_id).first()
-            self.queryset = self.queryset.filter(
-                Q(course__teacher__user__id=user_id)
-                | Q(course__assistant_teacher__user__id=user_id)
-                | Q(course__students__in=[student])
-            )
+            try:
+                student = Student.objects.filter(user__id=user_id).first()
+                self.queryset = self.queryset.filter(
+                    Q(course__teacher__user__id=user_id)
+                    | Q(course__assistant_teachers__user__in=[user_id])
+                    | Q(course__students__in=[student])
+                )
+            except Exception as error:
+                raise exceptions.APIException(error)
+
         return super().get(self, request, *args, **kwargs)
 
 
@@ -114,11 +122,18 @@ class UserCoursesView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         user_id = kwargs.get("user_id", None)
+        if not is_valid_uuid(user_id):
+            raise exceptions.ValidationError("Invalid user_id")
+
         if user_id:
-            student = Student.objects.filter(user__id=user_id).first()
-            self.queryset = self.queryset.filter(
-                Q(teacher__user__id=user_id)
-                | Q(assistant_teacher__user__id=user_id)
-                | Q(students__in=[student])
-            )
+            try:
+                student = Student.objects.filter(user__id=user_id).first()
+                self.queryset = self.queryset.filter(
+                    Q(teacher__user__id=user_id)
+                    | Q(assistant_teachers__user__in=[user_id])
+                    | Q(students__in=[student])
+                )
+            except Exception as error:
+                raise exceptions.APIException(error)
+
         return super().get(self, request, *args, **kwargs)

@@ -251,6 +251,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
     "PAGE_SIZE": os.getenv("API_PAGE_SIZE", 20),
     "UPLOADED_FILES_USE_URL": True,
 }
