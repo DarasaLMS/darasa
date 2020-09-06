@@ -74,6 +74,19 @@ def end_meeting(request, meeting_id, *args, **kwargs):
 
 
 @swagger_auto_schema(
+    method="POST",
+    manual_parameters=[
+        openapi.Parameter("meeting_id", openapi.IN_PATH, type=openapi.TYPE_STRING,),
+    ],
+)
+@api_view(["POST"])
+def create_join_meeting_link(request, meeting_id, *args, **kwargs):
+    classroom = get_object_or_404(Classroom.objects.all(), meeting_id=meeting_id)
+    meeting_link = classroom.create_join_link(request.user)
+    return Response({"meeting_link": meeting_link})
+
+
+@swagger_auto_schema(
     method="GET",
     manual_parameters=[
         openapi.Parameter("meeting_id", openapi.IN_PATH, type=openapi.TYPE_STRING,),
