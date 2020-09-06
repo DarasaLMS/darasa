@@ -154,11 +154,19 @@ class Classroom(BaseModel):
 
     @property
     def start_date(self):
+        """Returns a python datetime object"""
         return self.event.start
 
     @property
     def end_date(self):
+        """Returns a python datetime object"""
         return self.event.end
+
+    @property
+    def duration(self):
+        """Returns duration in seconds"""
+        diff = self.end_date - self.start_date
+        return diff.total_seconds()
 
     @property
     def recurring(self):

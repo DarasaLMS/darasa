@@ -28,7 +28,15 @@ class CourseAdmin(admin.ModelAdmin):
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
     model = Classroom
-    list_display = ("name", "course", "meeting_id", "date_modified")
+    list_display = (
+        "name",
+        "course",
+        "meeting_id",
+        "start_date",
+        "end_date",
+        "duration",
+        "date_modified",
+    )
     fieldsets = (
         (
             None,
@@ -41,7 +49,6 @@ class ClassroomAdmin(admin.ModelAdmin):
                     "moderator_password",
                     "attendee_password",
                     "welcome_message",
-                    "duration",
                 )
             },
         ),
@@ -54,17 +61,6 @@ class ClassroomAdmin(admin.ModelAdmin):
 class RequestAdmin(admin.ModelAdmin):
     model = Request
     list_display = ("course", "student", "teacher", "status", "date_modified")
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "course",
-                    "student",
-                    "status",
-                )
-            },
-        ),
-    )
+    fieldsets = ((None, {"fields": ("course", "student", "status",)},),)
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
