@@ -226,7 +226,7 @@ class Classroom(BaseModel):
             self.meeting_id, settings.BBB_URL, settings.BBB_SECRET,
         )
         if response.get("returncode") == "SUCCESS":
-            return True
+            return response.get("running") == "true"
 
         return False
 
