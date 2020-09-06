@@ -138,7 +138,8 @@ class MiniUserSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    user = MiniUserSerializer()
+    user = MiniUserSerializer(many=False, read_only=True)
+    educational_stage = EducationalStageSerializer(many=False, read_only=True)
 
     class Meta:
         model = Student
