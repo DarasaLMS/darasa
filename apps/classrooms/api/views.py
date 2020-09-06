@@ -1,8 +1,15 @@
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from django_filters.rest_framework.backends import DjangoFilterBackend
-from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
+from rest_framework import (
+    exceptions,
+    permissions,
+    status,
+    viewsets,
+    generics,
+    mixins,
+    filters,
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -21,7 +28,8 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
 
 
 class ClassroomCreateView(generics.CreateAPIView):
