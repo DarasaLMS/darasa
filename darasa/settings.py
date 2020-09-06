@@ -237,6 +237,7 @@ SWAGGER_SETTINGS = {
     "SECURITY_REQUIREMENTS": [{"Token": []},],
     "REFETCH_SCHEMA_WITH_AUTH": True,
     "PERSIST_AUTH": True,
+    "DOC_EXPANSION": "none",
 }
 
 
