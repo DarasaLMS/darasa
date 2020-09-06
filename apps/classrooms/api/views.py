@@ -67,10 +67,23 @@ class ClassroomView(
     ],
 )
 @api_view(["PATCH"])
-def end_meeting_callback(request, meeting_id):
+def end_meeting(request, meeting_id, *args, **kwargs):
     classroom = get_object_or_404(Classroom.objects.all(), meeting_id=meeting_id)
     classroom.end_meeting()
     return Response(ClassroomSerializer(instance=classroom).data)
+
+
+@swagger_auto_schema(
+    method="GET",
+    manual_parameters=[
+        openapi.Parameter("meeting_id", openapi.IN_PATH, type=openapi.TYPE_STRING,),
+    ],
+)
+@api_view(["GET"])
+def check_running_meeting(request, meeting_id, *args, **kwargs):
+    classroom = get_object_or_404(Classroom.objects.all(), meeting_id=meeting_id)
+    status = classroom.is_meeting_running()
+    return Response({"status": status})
 
 
 class RequestCreateView(generics.CreateAPIView):
