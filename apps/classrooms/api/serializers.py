@@ -47,6 +47,8 @@ class ClassroomSerializer(serializers.ModelSerializer):
             "meeting_id",
             "welcome_message",
             "logout_url",
+            "start_date",
+            "end_date",
             "duration",
             "date_created",
             "created_by",
