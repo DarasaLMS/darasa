@@ -65,21 +65,23 @@ def end_meeting_callback(request, meeting_id):
     return Response(ClassroomSerializer(instance=classroom).data)
 
 
+class RequestCreateView(generics.CreateAPIView):
+    queryset = Request.objects.all()
+    serializer_class = RequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 class RequestView(
-    mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     generics.GenericAPIView,
 ):
-    serializer_class = RequestSerializer
     queryset = Request.objects.all()
+    serializer_class = RequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     lookup_url_kwarg = "request_id"
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
