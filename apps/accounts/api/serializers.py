@@ -9,7 +9,7 @@ from ..models import User, Student, Teacher, EducationalStage
 class EducationalStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = EducationalStage
-        fields = ["name", "description"]
+        fields = ["id", "name", "description"]
 
 
 class MiniStudentSerializer(serializers.ModelSerializer):
@@ -144,6 +144,19 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ["user", "educational_stage"]
+
+
+class StudentPictureSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    picture_url = serializers.SerializerMethodField("get_picture_url")
+
+    class Meta:
+        model = Student
+        fields = ["user", "educational_stage", "picture_url"]
+
+    def get_picture_url(self, obj):
+        request = self.context.get("request")
+        return request.build_absolute_uri(obj.user.picture.url)
 
 
 class TeacherSerializer(serializers.ModelSerializer):

@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
 from apps.core.permissions import IsOwnerOrReadOnly
+from apps.accounts.api.serializers import StudentPictureSerializer
 from apps.classrooms.models import Classroom
 from ..models import Calendar, Event, Occurrence, Rule
 from .serializers import EventSerializer, RuleSerializer
@@ -57,9 +58,12 @@ def api_occurrences(request, calendar_id, **kwargs):
     start = request.query_params.get("start")
     end = request.query_params.get("end")
     timezone = request.query_params.get("timezone")
+    include_students = request.query_params.get("include_students") == "true"
 
     try:
-        response_data = _api_occurrences(start, end, calendar_id, timezone)
+        response_data = _api_occurrences(
+            request, start, end, calendar_id, timezone, include_students
+        )
     except ValueError as e:
         return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Calendar.DoesNotExist as e:
@@ -72,7 +76,7 @@ def api_occurrences(request, calendar_id, **kwargs):
     return Response(response_data)
 
 
-def _api_occurrences(start, end, calendar_id, timezone):
+def _api_occurrences(request, start, end, calendar_id, timezone, include_students=False):
 
     if not start or not end:
         raise ValueError("Start and end parameters are required")
@@ -176,6 +180,13 @@ def _api_occurrences(start, end, calendar_id, timezone):
                     "course": {
                         "name": occurrence.event.classroom.course.name,
                         "teacher": str(occurrence.event.classroom.course.teacher),
+                        "students": StudentPictureSerializer(
+                            occurrence.event.classroom.course.students.all(),
+                            many=True,
+                            context={"request": request}
+                        ).data
+                        if include_students
+                        else [],
                     },
                     "color": occurrence.event.color,
                     "rule": recur_rule,
