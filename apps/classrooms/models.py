@@ -133,7 +133,10 @@ class Classroom(BaseModel):
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
     course = models.ForeignKey(
-        Course, on_delete=models.PROTECT, verbose_name=_("course"),
+        Course,
+        on_delete=models.PROTECT,
+        verbose_name=_("course"),
+        related_name="classrooms",
     )
 
     meeting_id = models.IntegerField(
