@@ -19,7 +19,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ["name", "description", "category", "course", "parent_post"]
 
 
-class MiniClassroomSerializer(serializers.ModelSerializer):
+class CourseClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom
         fields = [
@@ -45,7 +45,7 @@ class CourseSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True)
     lessons = LessonSerializer(many=True)
     posts = PostSerializer(many=True)
-    classrooms = MiniClassroomSerializer(many=True)
+    classrooms = CourseClassroomSerializer(many=True)
 
     class Meta:
         model = Course
