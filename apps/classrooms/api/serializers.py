@@ -4,13 +4,27 @@ from apps.accounts.api.serializers import (
     StudentSerializer,
     TeacherSerializer,
 )
-from ..models import Course, Classroom, Request
+from ..models import Course, Lesson, Post, Classroom, Request
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ["name", "description", "notes", "course", "parent_lesson"]
+
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["name", "description", "category", "course", "parent_post"]
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    teacher = TeacherSerializer(many=False, read_only=True)
-    assistant_teachers = TeacherSerializer(many=True, read_only=True)
-    students = StudentSerializer(many=True, read_only=True)
+    teacher = TeacherSerializer(many=False)
+    assistant_teachers = TeacherSerializer(many=True)
+    students = StudentSerializer(many=True)
+    lessons = LessonSerializer(many=True)
+    posts = PostSerializer(many=True)
 
     class Meta:
         model = Course
@@ -22,7 +36,8 @@ class CourseSerializer(serializers.ModelSerializer):
             "teacher",
             "assistant_teachers",
             "students",
-            "feedback_set",
+            "lessons",
+            "posts",
             "date_created",
             "created_by",
             "date_modified",
