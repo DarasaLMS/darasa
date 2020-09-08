@@ -19,12 +19,33 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ["name", "description", "category", "course", "parent_post"]
 
 
+class MiniClassroomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Classroom
+        fields = [
+            "id",
+            "name",
+            "description",
+            "meeting_id",
+            "welcome_message",
+            "logout_url",
+            "start_date",
+            "end_date",
+            "duration",
+            "date_created",
+            "created_by",
+            "date_modified",
+            "modified_by",
+        ]
+
+
 class CourseSerializer(serializers.ModelSerializer):
     teacher = TeacherSerializer(many=False)
     assistant_teachers = TeacherSerializer(many=True)
     students = StudentSerializer(many=True)
     lessons = LessonSerializer(many=True)
     posts = PostSerializer(many=True)
+    classrooms = MiniClassroomSerializer(many=True)
 
     class Meta:
         model = Course
@@ -38,6 +59,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "students",
             "lessons",
             "posts",
+            "classrooms",
             "date_created",
             "created_by",
             "date_modified",
@@ -59,6 +81,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "description",
             "course",
             "meeting_id",
             "welcome_message",
