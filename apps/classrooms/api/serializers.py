@@ -18,6 +18,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "cover",
             "teacher",
             "assistant_teachers",
             "students",
