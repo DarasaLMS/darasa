@@ -99,7 +99,7 @@ class Post(BaseModel):
     FAQ = "faq"
     ANNOUNCEMENT = "announcement"
     POST_CATEGORIES = (
-        (FAQ, _("Frequently asked questions")),
+        (FAQ, _("Frequently Asked Questions (FAQ)")),
         (ANNOUNCEMENT, _("Announcements")),
     )
 
