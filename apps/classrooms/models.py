@@ -90,7 +90,9 @@ class Lesson(BaseModel):
     course = models.ForeignKey(
         Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
-    parent_lesson = models.ForeignKey("self", on_delete=models.CASCADE)
+    parent_lesson = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True
+    )
 
 
 class Post(BaseModel):
@@ -109,7 +111,9 @@ class Post(BaseModel):
     course = models.ForeignKey(
         Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
-    parent_post = models.ForeignKey("self", on_delete=models.CASCADE)
+    parent_post = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True
+    )
 
 
 class Classroom(BaseModel):

@@ -2,6 +2,18 @@ from django.contrib import admin
 from .models import Course, Lesson, Post, Classroom, Request
 
 
+class LessonInline(admin.TabularInline):
+    model = Lesson
+    extra = 1
+    exclude = ["created_by", "modified_by"]
+
+
+class PostInline(admin.TabularInline):
+    model = Post
+    extra = 1
+    exclude = ["created_by", "modified_by"]
+
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     model = Course
@@ -29,6 +41,10 @@ class CourseAdmin(admin.ModelAdmin):
             },
         ),
     )
+    inlines = [
+        LessonInline,
+        PostInline,
+    ]
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
 
