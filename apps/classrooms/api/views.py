@@ -13,6 +13,7 @@ from rest_framework import (
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
@@ -25,11 +26,12 @@ from .serializers import (
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all()
+    queryset = Course.objects.all().order_by("date_modified")
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ["name"]
+    filterset_fields = ["educational_stages"]
 
 
 class ClassroomCreateView(generics.CreateAPIView):
