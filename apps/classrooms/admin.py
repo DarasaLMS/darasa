@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import Course, Classroom, Request
+from .models import Course, Lesson, Post, Classroom, Request
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     model = Course
-    list_display = ("name", "description", "teacher", "students_count", "date_modified")
+    list_display = (
+        "name",
+        "description",
+        "teacher",
+        "students_count",
+        "classroom_join_mode",
+    )
     fieldsets = (
         (
             None,
@@ -21,6 +27,34 @@ class CourseAdmin(admin.ModelAdmin):
                     "classroom_join_mode",
                 )
             },
+        ),
+    )
+    date_hierarchy = "date_modified"
+    ordering = ["-date_modified"]
+
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    model = Lesson
+    list_display = ("name", "description", "course", "parent_lesson")
+    fieldsets = (
+        (
+            None,
+            {"fields": ("name", "description", "notes", "course", "parent_lesson",)},
+        ),
+    )
+    date_hierarchy = "date_modified"
+    ordering = ["-date_modified"]
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    model = Post
+    list_display = ("name", "description", "category", "course", "parent_post")
+    fieldsets = (
+        (
+            None,
+            {"fields": ("name", "description", "category", "course", "parent_post")},
         ),
     )
     date_hierarchy = "date_modified"

@@ -83,31 +83,33 @@ class Course(BaseModel):
         pass
 
 
-class Topic(models.Model):
+class Lesson(BaseModel):
+    name = models.CharField(_("name"), max_length=255)
+    description = models.TextField(_("description"), blank=True)
+    notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
     course = models.ForeignKey(
         Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
-    name = models.CharField(_("name"), max_length=255)
-    notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
-    parent = models.ForeignKey("self", on_delete=models.CASCADE)
+    parent_lesson = models.ForeignKey("self", on_delete=models.CASCADE)
 
 
-class Information(models.Model):
+class Post(BaseModel):
     FAQ = "faq"
     ANNOUNCEMENT = "announcement"
-    INFO_CATEGORIES = (
+    POST_CATEGORIES = (
         (FAQ, _("Frequently asked questions")),
         (ANNOUNCEMENT, _("Announcements")),
     )
 
+    name = models.CharField(_("name"), max_length=255)
+    description = models.TextField(_("description"), blank=True)
+    category = models.CharField(
+        _("category"), max_length=32, choices=POST_CATEGORIES, default=ANNOUNCEMENT,
+    )
     course = models.ForeignKey(
         Course, on_delete=models.PROTECT, verbose_name=_("course"),
     )
-    category = models.CharField(
-        _("category"), max_length=32, choices=INFO_CATEGORIES, default=ANNOUNCEMENT,
-    )
-    name = models.CharField(_("name"), max_length=255)
-    description = models.TextField(_("description"), blank=True)
+    parent_post = models.ForeignKey("self", on_delete=models.CASCADE)
 
 
 class Classroom(BaseModel):
