@@ -5,7 +5,7 @@ from .models import Course, Classroom, Request
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     model = Course
-    list_display = ("name", "description", "students_count", "date_modified")
+    list_display = ("name", "description", "teacher", "students_count", "date_modified")
     fieldsets = (
         (
             None,
@@ -17,6 +17,8 @@ class CourseAdmin(admin.ModelAdmin):
                     "teacher",
                     "assistant_teachers",
                     "students",
+                    "educational_stages",
+                    "classroom_join_mode",
                 )
             },
         ),
