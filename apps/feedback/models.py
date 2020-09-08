@@ -16,7 +16,13 @@ class Feedback(BaseModel):
         User, on_delete=models.CASCADE, related_name="to_user_feedback"
     )
     message = models.TextField(blank=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="feedbacks",
+    )
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(5)]
     )

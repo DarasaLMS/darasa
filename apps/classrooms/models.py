@@ -88,7 +88,10 @@ class Lesson(BaseModel):
     description = models.TextField(_("description"), blank=True)
     notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
     course = models.ForeignKey(
-        Course, on_delete=models.PROTECT, verbose_name=_("course"),
+        Course,
+        on_delete=models.PROTECT,
+        verbose_name=_("course"),
+        related_name="lessons",
     )
     parent_lesson = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
@@ -109,7 +112,10 @@ class Post(BaseModel):
         _("category"), max_length=32, choices=POST_CATEGORIES, default=ANNOUNCEMENT,
     )
     course = models.ForeignKey(
-        Course, on_delete=models.PROTECT, verbose_name=_("course"),
+        Course,
+        on_delete=models.PROTECT,
+        verbose_name=_("course"),
+        related_name="posts",
     )
     parent_post = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True

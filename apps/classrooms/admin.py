@@ -56,7 +56,7 @@ class LessonAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             None,
-            {"fields": ("name", "description", "notes", "course", "parent_lesson",)},
+            {"fields": ("name", "description", "notes", "course", "parent_lesson")},
         ),
     )
     date_hierarchy = "date_modified"
