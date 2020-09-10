@@ -235,7 +235,6 @@ class PasswordResetToken(models.Model):
 
 
 class EducationalStage(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
 
