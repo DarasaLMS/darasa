@@ -56,6 +56,7 @@ class Course(BaseModel):
         related_name="assistant_teachers",
         verbose_name=_("assistant teachers"),
         blank=True,
+        null=True,
     )
     students = models.ManyToManyField(Student, verbose_name=_("students"), blank=True)
     educational_stages = models.ManyToManyField(
