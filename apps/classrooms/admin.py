@@ -97,9 +97,6 @@ class ClassroomAdmin(admin.ModelAdmin):
                     "name",
                     "description",
                     "course",
-                    "room_id",
-                    "moderator_password",
-                    "attendee_password",
                     "welcome_message",
                 )
             },
