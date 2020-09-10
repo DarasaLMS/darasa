@@ -175,7 +175,7 @@ def _api_occurrences(request, start, end, calendar_id, timezone, include_student
                     "classroom": {
                         "name": occurrence.event.classroom.name,
                         "duration": occurrence.event.classroom.duration,
-                        "meeting_id": occurrence.event.classroom.meeting_id,
+                        "room_id": occurrence.event.classroom.room_id,
                     },
                     "course": {
                         "name": occurrence.event.classroom.course.name,

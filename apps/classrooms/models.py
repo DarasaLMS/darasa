@@ -120,11 +120,11 @@ class Post(BaseModel):
 
 
 class Classroom(BaseModel):
-    def get_meeting_id():
+    def get_room_id():
         if Classroom.objects.all().count() == 0:
             return random.randrange(100000, 1000000000)
         else:
-            return Classroom.objects.latest("date_created").meeting_id + 1
+            return Classroom.objects.latest("date_created").room_id + 1
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=255)
@@ -136,11 +136,11 @@ class Classroom(BaseModel):
         related_name="classrooms",
     )
 
-    meeting_id = models.IntegerField(
-        _("meeting ID"),
+    room_id = models.IntegerField(
+        _("room ID"),
         help_text=_("The meeting number which need to be unique."),
         unique=True,
-        default=get_meeting_id,
+        default=get_room_id,
     )
     welcome_message = models.CharField(
         _("welcome message"),
@@ -188,12 +188,12 @@ class Classroom(BaseModel):
         }
 
     def create_meeting(self, duration=0):
-        callback_url = "{}/{}/classrooms/meetings/{}/end/".format(
-            settings.SITE_URL, settings.API_VERSION, self.meeting_id
+        callback_url = "{}/{}/rooms/{}/end/".format(
+            settings.SITE_URL, settings.API_VERSION, self.room_id
         )
         response = create_meeting(
             self.name,
-            self.meeting_id,
+            self.room_id,
             self.moderator_password,
             self.attendee_password,
             self.welcome_message,
@@ -222,7 +222,7 @@ class Classroom(BaseModel):
 
         if is_teacher or is_student:
             url = join_meeting_url(
-                self.meeting_id,
+                self.room_id,
                 str(user),
                 str(user.id),
                 self.moderator_password if moderator else self.attendee_password,
@@ -235,7 +235,7 @@ class Classroom(BaseModel):
 
     def is_meeting_running(self):
         response = is_meeting_running(
-            self.meeting_id, settings.BBB_URL, settings.BBB_SECRET,
+            self.room_id, settings.BBB_URL, settings.BBB_SECRET,
         )
         if response.get("returncode") == "SUCCESS":
             return response.get("running") == "true"
@@ -244,7 +244,7 @@ class Classroom(BaseModel):
 
     def get_meeting_info(self):
         response = get_meeting_info(
-            self.meeting_id,
+            self.room_id,
             self.moderator_password,
             settings.BBB_URL,
             settings.BBB_SECRET,
@@ -253,7 +253,7 @@ class Classroom(BaseModel):
 
     def end_meeting(self, close_session=True):
         response = end_meeting(
-            self.meeting_id,
+            self.room_id,
             self.moderator_password,
             settings.BBB_URL,
             settings.BBB_SECRET,

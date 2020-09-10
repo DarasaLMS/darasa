@@ -83,7 +83,7 @@ class ClassroomAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "course",
-        "meeting_id",
+        "room_id",
         "start_date",
         "end_date",
         "duration",
@@ -97,7 +97,7 @@ class ClassroomAdmin(admin.ModelAdmin):
                     "name",
                     "description",
                     "course",
-                    "meeting_id",
+                    "room_id",
                     "moderator_password",
                     "attendee_password",
                     "welcome_message",

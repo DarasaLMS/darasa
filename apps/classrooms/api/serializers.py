@@ -26,7 +26,7 @@ class CourseClassroomSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
-            "meeting_id",
+            "room_id",
             "welcome_message",
             "logout_url",
             "start_date",
@@ -83,7 +83,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "course",
-            "meeting_id",
+            "room_id",
             "welcome_message",
             "logout_url",
             "start_date",
@@ -101,7 +101,7 @@ class MiniClassroomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Classroom
-        fields = ["id", "name", "course", "meeting_id"]
+        fields = ["id", "name", "course", "room_id"]
 
 
 class RequestSerializer(serializers.ModelSerializer):

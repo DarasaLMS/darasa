@@ -24,9 +24,9 @@ urlpatterns = [
         ClassroomView.as_view(),
         name="api_classrooms",
     ),
-    re_path(r"^meetings/(?P<meeting_id>.+)/join/$", create_join_meeting_link),
-    re_path(r"^meetings/(?P<meeting_id>.+)/end/$", end_meeting),
-    re_path(r"^meetings/(?P<meeting_id>.+)/running/$", check_running_meeting),
+    re_path(r"^rooms/(?P<room_id>.+)/join/$", create_join_meeting_link),
+    re_path(r"^rooms/(?P<room_id>.+)/end/$", end_meeting),
+    re_path(r"^rooms/(?P<room_id>.+)/running/$", check_running_meeting),
     re_path(r"^requests/$", RequestCreateView.as_view(), name="api_requests",),
     re_path(
         r"^requests/(?P<request_id>.+)/$", RequestView.as_view(), name="api_requests",
