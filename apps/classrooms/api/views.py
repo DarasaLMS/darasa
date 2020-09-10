@@ -82,10 +82,10 @@ def end_meeting(request, room_id, *args, **kwargs):
     ],
 )
 @api_view(["POST"])
-def create_join_meeting_link(request, room_id, *args, **kwargs):
+def create_join_meeting_room_link(request, room_id, *args, **kwargs):
     classroom = get_object_or_404(Classroom.objects.all(), room_id=room_id)
-    meeting_link = classroom.create_join_link(request.user)
-    return Response({"meeting_link": meeting_link})
+    meeting_room_link = classroom.create_join_link(request.user)
+    return Response({"meeting_room_link": meeting_room_link})
 
 
 @swagger_auto_schema(
