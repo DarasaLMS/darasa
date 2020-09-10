@@ -126,6 +126,7 @@ class Classroom(BaseModel):
         else:
             return Classroom.objects.latest("date_created").room_id + 1
 
+    # Class fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
@@ -136,9 +137,10 @@ class Classroom(BaseModel):
         related_name="classrooms",
     )
 
+    # Room fields
     room_id = models.IntegerField(
-        _("room ID"),
-        help_text=_("The meeting number which need to be unique."),
+        _("room number"),
+        help_text=_("The room number which need to be unique."),
         unique=True,
         default=get_room_id,
     )
@@ -153,7 +155,6 @@ class Classroom(BaseModel):
         help_text=_("URL to which users will be redirected."),
         default=settings.BBB_LOGOUT_URL,
     )
-
     moderator_password = models.CharField(
         _("moderator password"), max_length=120, default=get_random_password
     )
@@ -187,7 +188,7 @@ class Classroom(BaseModel):
             "end_recurring_period": self.event.end_recurring_period,
         }
 
-    def create_meeting(self, duration=0):
+    def create_meeting_room(self, duration=0):
         callback_url = "{}/{}/rooms/{}/end/".format(
             settings.SITE_URL, settings.API_VERSION, self.room_id
         )
@@ -201,7 +202,9 @@ class Classroom(BaseModel):
             callback_url,
             settings.BBB_URL,
             settings.BBB_SECRET,
-            duration,  # Duration of the meeting in minutes. Default is 0 (meeting doesn't end).
+            # Duration of the meeting in minutes.
+            # Default is 0 (meeting doesn't end).
+            duration,
         )
 
         if response.get("returncode") == "SUCCESS":
@@ -212,7 +215,7 @@ class Classroom(BaseModel):
     def create_join_link(self, user, moderator=False):
         # create meeting room is idempotent.
         # Always a good idea to call each time to ensure meeting exists.
-        self.create_meeting()
+        self.create_meeting_room()
 
         is_teacher = user == self.course.teacher.user
         if is_teacher:
@@ -288,7 +291,6 @@ class Request(BaseModel):
         (PENDING, _("Pending")),
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     teacher = models.ForeignKey(
         Teacher, on_delete=models.CASCADE, null=True, blank=True
