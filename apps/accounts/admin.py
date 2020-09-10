@@ -6,6 +6,16 @@ from .models import User, Student, Teacher, EducationalStage, School
 from .forms import UserAddForm, UserChangeForm, SchoolAdminForm, GroupAdminForm
 
 
+class StudentInline(admin.TabularInline):
+    model = Student
+    extra = 1
+
+
+class TeacherInline(admin.TabularInline):
+    model = Teacher
+    extra = 1
+
+
 @admin.register(User)
 class UserAdmin(UserAdmin):
     add_form = UserAddForm
@@ -63,6 +73,8 @@ class UserAdmin(UserAdmin):
         ),
         ("Login", {"fields": ["email", "password1", "password2"]}),
     )
+
+    inlines = [StudentInline, TeacherInline]
 
     def render_picture(self, obj):
         return render_to_string("picture.html", {"picture": obj.picture})
