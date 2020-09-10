@@ -75,11 +75,8 @@ class Course(BaseModel):
     def students_count(self):
         return self.students.count()
 
-    @property
-    def classrooms(self):
-        return self.classroom_set.all()
-
     def progress(self):
+        # TODO: Implement course progress
         pass
 
 
@@ -317,7 +314,7 @@ class Request(BaseModel):
     def process_student_request(self):
         classrooms = []
         if self.course.classroom_join_mode == Course.JOIN_ALL:
-            classrooms = self.course.classrooms
+            classrooms = self.course.classrooms.all()
         elif self.course.classroom_join_mode == Course.CHOOSE_TO_JOIN:
             classrooms = self.classrooms.all()
 
@@ -372,6 +369,6 @@ def post_save_request(sender, instance, created, **kwargs):
         instance.teacher = instance.course.teacher
         instance.save()
 
-    if instance._status == Request.PENDING and instance._status != instance.status:
+    if instance._status == Request.PENDING and instance.status == Request.ACCEPTED:
         instance.process_student_request()
 
