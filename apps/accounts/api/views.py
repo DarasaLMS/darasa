@@ -8,8 +8,9 @@ from rest_framework.generics import (
     RetrieveAPIView,
 )
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import exceptions, permissions, status
+from rest_framework import exceptions, permissions, status, filters
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django_filters.rest_framework import DjangoFilterBackend
 from ..models import VerificationToken, User, PasswordResetToken
 from .serializers import (
     LoginSerializer,
@@ -26,6 +27,9 @@ class UserLisCreateView(ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ["first_name", "last_name", "nickname", "email", "phone"]
+    filterset_fields = ["is_staff", "is_active", "role"]
 
 
 class UserRetrieveView(RetrieveAPIView):
