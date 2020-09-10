@@ -52,11 +52,20 @@ class CourseAdmin(admin.ModelAdmin):
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
     model = Lesson
-    list_display = ("name", "description", "course", "parent_lesson")
+    list_display = ("name", "description", "course", "parent_lesson", "position")
     fieldsets = (
         (
             None,
-            {"fields": ("name", "description", "notes", "course", "parent_lesson")},
+            {
+                "fields": (
+                    "name",
+                    "description",
+                    "notes",
+                    "course",
+                    "parent_lesson",
+                    "position",
+                )
+            },
         ),
     )
     date_hierarchy = "date_modified"
@@ -90,17 +99,7 @@ class ClassroomAdmin(admin.ModelAdmin):
         "date_modified",
     )
     fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "name",
-                    "description",
-                    "course",
-                    "welcome_message",
-                )
-            },
-        ),
+        (None, {"fields": ("name", "description", "course", "welcome_message",)},),
     )
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]

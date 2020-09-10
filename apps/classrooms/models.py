@@ -93,6 +93,7 @@ class Lesson(BaseModel):
     parent_lesson = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
+    position = models.IntegerField(_("position"), default=0)
 
 
 class Post(BaseModel):

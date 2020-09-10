@@ -10,7 +10,14 @@ from ..models import Course, Lesson, Post, Classroom, Request
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ["name", "description", "notes", "course", "parent_lesson"]
+        fields = [
+            "name",
+            "description",
+            "notes",
+            "course",
+            "parent_lesson",
+            "position",
+        ]
 
 
 class PostSerializer(serializers.ModelSerializer):
