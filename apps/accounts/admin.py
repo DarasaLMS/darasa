@@ -21,6 +21,7 @@ class UserAdmin(UserAdmin):
     add_form = UserAddForm
     form = UserChangeForm
     ordering = ["first_name"]
+    search_fields = ("email", "first_name", "last_name", "nickname")
 
     list_display = (
         "email",
