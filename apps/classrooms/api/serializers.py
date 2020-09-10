@@ -47,12 +47,12 @@ class CourseClassroomSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    teacher = TeacherSerializer(many=False)
-    assistant_teachers = TeacherSerializer(many=True)
-    students = StudentSerializer(many=True)
-    lessons = LessonSerializer(many=True)
-    posts = PostSerializer(many=True)
-    classrooms = CourseClassroomSerializer(many=True)
+    teacher = TeacherSerializer(many=False, required=True)
+    assistant_teachers = TeacherSerializer(many=True, required=False)
+    students = StudentSerializer(many=True, required=False)
+    lessons = LessonSerializer(many=True, required=False)
+    posts = PostSerializer(many=True, required=False)
+    classrooms = CourseClassroomSerializer(many=True, required=False)
 
     class Meta:
         model = Course
