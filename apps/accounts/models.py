@@ -190,8 +190,6 @@ def pre_save_user(sender, instance, **kwargs):
 @receiver(post_save, sender=User)
 def post_save_user(sender, instance, created, **kwargs):
     if created:
-        instance.send_verification_email()
-
         if instance.role == User.STUDENT:
             student_model = apps.get_model("accounts", "student")
             student_model.objects.get_or_create(user=instance)
