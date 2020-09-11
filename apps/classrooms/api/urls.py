@@ -7,7 +7,7 @@ from .views import (
     create_join_meeting_room_link,
     end_meeting,
     check_running_meeting,
-    RequestCreateView,
+    create_request_view,
     RequestView,
     UserClassroomsView,
     UserCoursesView,
@@ -18,7 +18,7 @@ router.register(r"courses", CourseViewSet)
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
-    re_path(r"^classrooms/$", ClassroomCreateView.as_view(), name="api_classrooms",),
+    re_path(r"^classrooms/$", ClassroomCreateView.as_view(), name="api_classrooms"),
     re_path(
         r"^classrooms/(?P<classroom_id>.+)/$",
         ClassroomView.as_view(),
@@ -27,9 +27,9 @@ urlpatterns = [
     re_path(r"^rooms/(?P<room_id>.+)/join/$", create_join_meeting_room_link),
     re_path(r"^rooms/(?P<room_id>.+)/end/$", end_meeting),
     re_path(r"^rooms/(?P<room_id>.+)/running/$", check_running_meeting),
-    re_path(r"^requests/$", RequestCreateView.as_view(), name="api_requests",),
+    re_path(r"^requests/$", create_request_view),
     re_path(
-        r"^requests/(?P<request_id>.+)/$", RequestView.as_view(), name="api_requests",
+        r"^requests/(?P<request_id>.+)/$", RequestView.as_view(), name="api_requests"
     ),
     re_path(
         r"^users/(?P<user_id>.+)/classrooms/$",
