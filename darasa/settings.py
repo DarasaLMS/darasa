@@ -93,9 +93,9 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+            ]
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "darasa.wsgi.application"
@@ -123,11 +123,11 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -234,7 +234,7 @@ SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Token": {"type": "apiKey", "name": "Authorization", "in": "header"}
     },
-    "SECURITY_REQUIREMENTS": [{"Token": []},],
+    "SECURITY_REQUIREMENTS": [{"Token": []}],
     "REFETCH_SCHEMA_WITH_AUTH": True,
     "PERSIST_AUTH": True,
     "DOC_EXPANSION": "none",
@@ -268,7 +268,7 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
         },
-        "simple": {"format": "{levelname} {message}", "style": "{",},
+        "simple": {"format": "{levelname} {message}", "style": "{"},
     },
     "handlers": {
         "console": {
@@ -278,7 +278,7 @@ LOGGING = {
             "level": "INFO",
         }
     },
-    "filters": {"require_debug_true": {"()": "django.utils.log.RequireDebugTrue",},},
+    "filters": {"require_debug_true": {"()": "django.utils.log.RequireDebugTrue"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 

@@ -61,9 +61,7 @@ class UserSerializer(serializers.ModelSerializer):
             "student",
             "teacher",
         )
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         student = None
@@ -164,12 +162,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
-        fields = [
-            "user",
-            "bio",
-            "verified",
-            "verification_file",
-        ]
+        fields = ["user", "bio", "verified", "verification_file"]
         read_only_fields = ["verified", "verification_file"]
 
 

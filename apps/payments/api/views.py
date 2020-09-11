@@ -20,4 +20,3 @@ class RateViewSet(viewsets.ModelViewSet):
     serializer_class = RateSerializer
     queryset = Rate.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-

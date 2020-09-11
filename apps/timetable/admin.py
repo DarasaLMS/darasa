@@ -1,12 +1,6 @@
 from django.contrib import admin
 from .forms import EventAdminForm
-from .models import (
-    Calendar,
-    CalendarRelation,
-    Event,
-    EventRelation,
-    Rule,
-)
+from .models import Calendar, CalendarRelation, Event, EventRelation, Rule
 
 
 @admin.register(Calendar)

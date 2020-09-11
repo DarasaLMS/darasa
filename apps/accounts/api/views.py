@@ -12,11 +12,7 @@ from rest_framework import exceptions, permissions, status, filters
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
 from ..models import VerificationToken, User, PasswordResetToken
-from .serializers import (
-    LoginSerializer,
-    UserSerializer,
-    PasswordResetRequestSerializer,
-)
+from .serializers import LoginSerializer, UserSerializer, PasswordResetRequestSerializer
 
 
 class LoginView(TokenObtainPairView):
@@ -43,7 +39,7 @@ class UserRetrieveView(RetrieveAPIView):
     method="POST",
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"token": openapi.Schema(type=openapi.TYPE_STRING),},
+        properties={"token": openapi.Schema(type=openapi.TYPE_STRING)},
     ),
 )
 @api_view(["POST"])
@@ -116,4 +112,3 @@ def password_reset_verify(request, **kwargs):
         # delete verification token after usage
         verification_token.delete()
         return Response({"success": True})
-

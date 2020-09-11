@@ -136,4 +136,3 @@ class SchoolAdmin(admin.ModelAdmin):
         ),
     )
     form = SchoolAdminForm
-

@@ -27,6 +27,8 @@ urlpatterns = [
     ),
     re_path(
         r"^timetable/",
-        include(("apps.timetable.api.urls", "timetable-api"), namespace="timetable-api"),
+        include(
+            ("apps.timetable.api.urls", "timetable-api"), namespace="timetable-api"
+        ),
     ),
 ]

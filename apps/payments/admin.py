@@ -38,10 +38,6 @@ class PaymentAdmin(admin.ModelAdmin):
 @admin.register(Rate)
 class RateAdmin(admin.ModelAdmin):
     model = Rate
-    list_display = (
-        "course",
-        "price",
-        "date_modified",
-    )
+    list_display = ("course", "price", "date_modified")
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]

@@ -46,10 +46,10 @@ class RuleViewset(viewsets.ModelViewSet):
 @swagger_auto_schema(
     method="GET",
     manual_parameters=[
-        openapi.Parameter("calendar_id", openapi.IN_PATH, type=openapi.TYPE_STRING,),
-        openapi.Parameter("start", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
-        openapi.Parameter("end", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
-        openapi.Parameter("timezone", openapi.IN_QUERY, type=openapi.TYPE_STRING,),
+        openapi.Parameter("calendar_id", openapi.IN_PATH, type=openapi.TYPE_STRING),
+        openapi.Parameter("start", openapi.IN_QUERY, type=openapi.TYPE_STRING),
+        openapi.Parameter("end", openapi.IN_QUERY, type=openapi.TYPE_STRING),
+        openapi.Parameter("timezone", openapi.IN_QUERY, type=openapi.TYPE_STRING),
     ],
 )
 @api_view(["GET"])
@@ -57,12 +57,12 @@ class RuleViewset(viewsets.ModelViewSet):
 def api_occurrences(request, calendar_id, **kwargs):
     start = request.query_params.get("start")
     end = request.query_params.get("end")
-    timezone = request.query_params.get("timezone")
+    tz = request.query_params.get("timezone")
     include_students = request.query_params.get("include_students") == "true"
 
     try:
         response_data = _api_occurrences(
-            request, start, end, calendar_id, timezone, include_students
+            request, start, end, calendar_id, tz, include_students
         )
     except ValueError as e:
         return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -76,7 +76,8 @@ def api_occurrences(request, calendar_id, **kwargs):
     return Response(response_data)
 
 
-def _api_occurrences(request, start, end, calendar_id, timezone, include_students=False):
+# flake8: noqa: C901
+def _api_occurrences(request, start, end, calendar_id, tz, include_students=False):
 
     if not start or not end:
         raise ValueError("Start and end parameters are required")
@@ -100,9 +101,9 @@ def _api_occurrences(request, start, end, calendar_id, timezone, include_student
     start = convert(start)
     end = convert(end)
     current_tz = False
-    if timezone and timezone in pytz.common_timezones:
+    if tz and tz in pytz.common_timezones:
         # make start and end dates aware in given timezone
-        current_tz = pytz.timezone(timezone)
+        current_tz = pytz.timezone(tz)
         start = current_tz.localize(start)
         end = current_tz.localize(end)
     elif settings.USE_TZ:
@@ -183,7 +184,7 @@ def _api_occurrences(request, start, end, calendar_id, timezone, include_student
                         "students": StudentPictureSerializer(
                             occurrence.event.classroom.course.students.all(),
                             many=True,
-                            context={"request": request}
+                            context={"request": request},
                         ).data
                         if include_students
                         else [],
@@ -323,4 +324,3 @@ def api_create_event(request, **kwargs):
             {"message": str(e), "class": e.__class__.__name__},
             status=status.HTTP_400_BAD_REQUEST,
         )
-

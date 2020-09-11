@@ -1,9 +1,6 @@
 from rest_framework import serializers
 from apps.accounts.api.serializers import MiniUserSerializer
-from apps.classrooms.api.serializers import (
-    ClassroomSerializer,
-    CourseSerializer,
-)
+from apps.classrooms.api.serializers import ClassroomSerializer, CourseSerializer
 from ..models import Billing, Payment, Rate
 
 
@@ -50,8 +47,4 @@ class RateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rate
-        fields = [
-            "course",
-            "price",
-            "date_modified",
-        ]
+        fields = ["course", "price", "date_modified"]

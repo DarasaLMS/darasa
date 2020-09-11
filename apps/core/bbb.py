@@ -3,10 +3,16 @@
 # Author: Antony Orenge (@antorenge)
 # @version: Big Blue Button API v2.2
 #
+# flake8: noqa: E401
+# flake8: noqa: E722
 
 import xmltodict
-import urllib.request, urllib.parse, urllib.error, socket
-import hashlib, random
+import urllib.request
+import urllib.parse
+import urllib.error
+import socket
+import hashlib
+import random
 
 
 def bbb_wrap_load_file(url):
@@ -123,9 +129,7 @@ def is_meeting_running_url(meetingID, URL, SALT):
     """
     base_url = URL + "api/isMeetingRunning?"
 
-    parameters = {
-        "meetingID": meetingID,
-    }
+    parameters = {"meetingID": meetingID}
     parameters = urllib.parse.urlencode(parameters)
 
     return (
@@ -150,10 +154,7 @@ def get_meeting_info_url(meetingID, modPW, URL, SALT):
     """
     base_url = URL + "api/getMeetingInfo?"
 
-    parameters = {
-        "meetingID": meetingID,
-        "password": modPW,
-    }
+    parameters = {"meetingID": meetingID, "password": modPW}
     parameters = urllib.parse.urlencode(parameters)
 
     return (
@@ -176,9 +177,7 @@ def get_meetings_url(URL, SALT):
     """
     base_url = URL + "api/getMeetings?"
 
-    parameters = {
-        "random": (random.random() * 1000),
-    }
+    parameters = {"random": (random.random() * 1000)}
     parameters = urllib.parse.urlencode(parameters)
 
     return (
@@ -201,10 +200,7 @@ def end_meeting_url(meetingID, modPW, URL, SALT):
     """
     base_url = URL + "api/end?"
 
-    parameters = {
-        "meetingID": meetingID,
-        "password": modPW,
-    }
+    parameters = {"meetingID": meetingID, "password": modPW}
     parameters = urllib.parse.urlencode(parameters)
 
     return (

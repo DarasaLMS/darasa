@@ -1,9 +1,6 @@
 from django.conf import settings
 from rest_framework import serializers
-from apps.accounts.api.serializers import (
-    StudentSerializer,
-    TeacherSerializer,
-)
+from apps.accounts.api.serializers import StudentSerializer, TeacherSerializer
 from apps.timetable.api.serializers import EventSerializer
 from ..models import Course, Lesson, Post, Classroom, Request
 
@@ -11,14 +8,7 @@ from ..models import Course, Lesson, Post, Classroom, Request
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
-        fields = [
-            "name",
-            "description",
-            "notes",
-            "course",
-            "parent_lesson",
-            "position",
-        ]
+        fields = ["name", "description", "notes", "course", "parent_lesson", "position"]
 
 
 class PostSerializer(serializers.ModelSerializer):

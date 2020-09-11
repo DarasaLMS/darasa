@@ -7,6 +7,4 @@ router.register(r"", PaymentViewSet)
 router.register(r"billings", BillingViewSet)
 router.register(r"rates", RateViewSet)
 
-urlpatterns = [
-    re_path(r"^", include(router.urls)),
-]
+urlpatterns = [re_path(r"^", include(router.urls))]

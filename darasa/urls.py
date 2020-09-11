@@ -48,7 +48,7 @@ admin.site.index_title = "Administration"
 
 urlpatterns = [
     re_path(
-        r"^docs/$", SCHEMA_VIEW.with_ui("swagger", cache_timeout=0), name="api-docs",
+        r"^docs/$", SCHEMA_VIEW.with_ui("swagger", cache_timeout=0), name="api-docs"
     ),
     re_path(r"^(?P<version>(v1))/", include(api_urls)),
     re_path("admin/", admin.site.urls),

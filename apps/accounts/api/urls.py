@@ -14,10 +14,10 @@ from .views import (
 urlpatterns = [
     re_path(r"^login/$", LoginView.as_view(), name="login_obtain_token"),
     re_path(
-        r"^token/refresh/$", TokenRefreshView.as_view(), name="login_token_refresh",
+        r"^token/refresh/$", TokenRefreshView.as_view(), name="login_token_refresh"
     ),
     re_path(
-        r"^token/verification/$", TokenVerifyView.as_view(), name="login_token_verify",
+        r"^token/verification/$", TokenVerifyView.as_view(), name="login_token_verify"
     ),
     re_path(r"^users/$", UserLisCreateView.as_view(), name="user_list_create_view"),
     re_path(
@@ -25,13 +25,13 @@ urlpatterns = [
         UserRetrieveView.as_view(),
         name="user_retrieve_view",
     ),
-    re_path(r"^email/verification/$", verify_email, name="email_verification",),
+    re_path(r"^email/verification/$", verify_email, name="email_verification"),
     re_path(
         r"^email/verification/resend/$",
         resend_email_verification,
         name="resend_email_verification",
     ),
-    re_path(r"^password/reset/$", password_reset_verify, name="reset_password",),
+    re_path(r"^password/reset/$", password_reset_verify, name="reset_password"),
     re_path(
         r"^password/reset/request/$",
         password_reset_request,

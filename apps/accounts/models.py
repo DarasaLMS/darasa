@@ -77,11 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     STAFF = "staff"
     STUDENT = "student"
     TEACHER = "teacher"
-    ROLES = (
-        (STAFF, _("Staff")),
-        (STUDENT, _("Student")),
-        (TEACHER, _("Teacher")),
-    )
+    ROLES = ((STAFF, _("Staff")), (STUDENT, _("Student")), (TEACHER, _("Teacher")))
 
     MALE = "male"
     FEMALE = "female"
@@ -271,7 +267,7 @@ class Teacher(models.Model):
     bio = models.TextField(blank=True)
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
-        upload_to="verifications/%Y/%m", null=True, blank=True,
+        upload_to="verifications/%Y/%m", null=True, blank=True
     )
 
     _was_verified = None

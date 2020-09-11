@@ -16,15 +16,9 @@ router.register(r"rules", RuleViewset)
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
+    re_path(r"^events/$", api_create_event, name="api_create_event"),
     re_path(
-        r"^events/$",
-        api_create_event,
-        name="api_create_event",
-    ),
-    re_path(
-        r"^events/(?P<event_id>.+)/$",
-        EventDetailView.as_view(),
-        name="api_events",
+        r"^events/(?P<event_id>.+)/$", EventDetailView.as_view(), name="api_events"
     ),
     re_path(
         r"^calendars/(?P<calendar_id>.+)/occurrences/$",

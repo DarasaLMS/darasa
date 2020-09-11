@@ -4,7 +4,6 @@ from django.db import models
 from apps.core.models import BaseModel
 from apps.accounts.models import User
 from apps.classrooms.models import Course
-from apps.core.models import BaseModel
 
 
 class Feedback(BaseModel):

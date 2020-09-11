@@ -20,4 +20,3 @@ class FeedbackSerializer(serializers.ModelSerializer):
             "rating",
             "date_modified",
         ]
-

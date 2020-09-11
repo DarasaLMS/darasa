@@ -20,15 +20,16 @@ class AuthenticationBackend(ModelBackend):
         Authenticate user's email against the given password
         """
         # Login credentials
-        email = credentials.get('email')
-        pwd_valid = credentials.get('password')
+        email = credentials.get("email")
+        pwd_valid = credentials.get("password")
 
         if email and pwd_valid:
             try:
                 user = USER.objects.get(
-                    Q(email__iexact=email) |
-                    Q(username__iexact=email) |
-                    Q(phone__iexact=email))
+                    Q(email__iexact=email)
+                    | Q(username__iexact=email)
+                    | Q(phone__iexact=email)
+                )
             except USER.DoesNotExist:
                 return None
 

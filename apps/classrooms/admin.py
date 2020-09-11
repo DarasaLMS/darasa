@@ -41,10 +41,7 @@ class CourseAdmin(admin.ModelAdmin):
             },
         ),
     )
-    inlines = [
-        LessonInline,
-        PostInline,
-    ]
+    inlines = [LessonInline, PostInline]
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
 
@@ -99,7 +96,7 @@ class ClassroomAdmin(admin.ModelAdmin):
         "date_modified",
     )
     fieldsets = (
-        (None, {"fields": ("name", "description", "course", "welcome_message",)},),
+        (None, {"fields": ("name", "description", "course", "welcome_message")}),
     )
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
@@ -109,6 +106,6 @@ class ClassroomAdmin(admin.ModelAdmin):
 class RequestAdmin(admin.ModelAdmin):
     model = Request
     list_display = ("course", "student", "teacher", "status", "date_modified")
-    fieldsets = ((None, {"fields": ("course", "student", "status",)},),)
+    fieldsets = ((None, {"fields": ("course", "student", "status")}),)
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]

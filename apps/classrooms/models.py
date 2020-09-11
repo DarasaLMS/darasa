@@ -107,13 +107,10 @@ class Post(BaseModel):
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
     category = models.CharField(
-        _("category"), max_length=32, choices=POST_CATEGORIES, default=ANNOUNCEMENT,
+        _("category"), max_length=32, choices=POST_CATEGORIES, default=ANNOUNCEMENT
     )
     course = models.ForeignKey(
-        Course,
-        on_delete=models.PROTECT,
-        verbose_name=_("course"),
-        related_name="posts",
+        Course, on_delete=models.PROTECT, verbose_name=_("course"), related_name="posts"
     )
     parent_post = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
@@ -239,7 +236,7 @@ class Classroom(BaseModel):
 
     def is_meeting_running(self):
         response = is_meeting_running(
-            self.room_id, settings.BBB_URL, settings.BBB_SECRET,
+            self.room_id, settings.BBB_URL, settings.BBB_SECRET
         )
         if response.get("returncode") == "SUCCESS":
             return response.get("running") == "true"
@@ -248,19 +245,13 @@ class Classroom(BaseModel):
 
     def get_meeting_info(self):
         response = get_meeting_info(
-            self.room_id,
-            self.moderator_password,
-            settings.BBB_URL,
-            settings.BBB_SECRET,
+            self.room_id, self.moderator_password, settings.BBB_URL, settings.BBB_SECRET
         )
         return response
 
     def end_meeting(self, close_session=True):
         response = end_meeting(
-            self.room_id,
-            self.moderator_password,
-            settings.BBB_URL,
-            settings.BBB_SECRET,
+            self.room_id, self.moderator_password, settings.BBB_URL, settings.BBB_SECRET
         )
         if response.get("returncode") == "SUCCESS":
             return True
@@ -374,4 +365,3 @@ def post_save_request(sender, instance, created, **kwargs):
 
     if instance._status == Request.PENDING and instance.status == Request.ACCEPTED:
         instance.process_student_request()
-
