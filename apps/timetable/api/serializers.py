@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from apps.classrooms.api.serializers import MiniClassroomSerializer
 from ..models import Calendar, Event, Rule
 
 
@@ -26,7 +25,6 @@ class RuleSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    classroom = MiniClassroomSerializer()
     rule = RuleSerializer(required=False)
 
     class Meta:

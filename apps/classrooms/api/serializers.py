@@ -4,6 +4,7 @@ from apps.accounts.api.serializers import (
     StudentSerializer,
     TeacherSerializer,
 )
+from apps.timetable.api.serializers import EventSerializer
 from ..models import Course, Lesson, Post, Classroom, Request
 
 
@@ -27,6 +28,8 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class CourseClassroomSerializer(serializers.ModelSerializer):
+    event = EventSerializer(many=False, required=False)
+
     class Meta:
         model = Classroom
         fields = [
@@ -39,6 +42,7 @@ class CourseClassroomSerializer(serializers.ModelSerializer):
             "start_date",
             "end_date",
             "duration",
+            "event",
             "date_created",
             "created_by",
             "date_modified",

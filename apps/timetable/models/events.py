@@ -54,7 +54,10 @@ class Event(BaseModel):
         help_text=_("The end time must be later than the start time."),
     )
     classroom = models.OneToOneField(
-        "classrooms.Classroom", on_delete=models.CASCADE, verbose_name=_("classroom")
+        "classrooms.Classroom",
+        on_delete=models.CASCADE,
+        verbose_name=_("classroom"),
+        related_name="event",
     )
     calendars = models.ManyToManyField(Calendar, verbose_name=_("calendars"))
 
