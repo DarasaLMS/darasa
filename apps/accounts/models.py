@@ -83,14 +83,30 @@ class User(AbstractBaseUser, PermissionsMixin):
     FEMALE = "female"
     GENDERS = ((MALE, _("Male")), (FEMALE, _("Female")))
 
+    MR = "mr"
+    MRS = "mrs"
+    MISS = "miss"
+    MS = "ms"
+    DR = "dr"
+    PROF = "professor"
+    TITLES = (
+        (MR, _("Mr")),
+        (MRS, _("Mrs")),
+        (MISS, _("Miss")),
+        (MS, _("Ms")),
+        (DR, _("Dr")),
+        (PROF, _("Professor")),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(_("First name"), max_length=32, blank=True)
-    last_name = models.CharField(_("Last name"), max_length=32, blank=True)
-    nickname = models.CharField(_("Display name"), max_length=32, blank=True)
-    gender = models.CharField(_("Gender"), max_length=8, blank=True, choices=GENDERS)
-    email = models.EmailField(_("Email address"), unique=True)
-    email_verified = models.BooleanField(_("Email verified"), default=False)
-    phone = PhoneNumberField(_("Phone number"), blank=True)
+    title = models.CharField(_("title"), max_length=16, blank=True, choices=TITLES)
+    first_name = models.CharField(_("first name"), max_length=32, blank=True)
+    last_name = models.CharField(_("last name"), max_length=32, blank=True)
+    nickname = models.CharField(_("display name"), max_length=32, blank=True)
+    gender = models.CharField(_("gender"), max_length=8, blank=True, choices=GENDERS)
+    email = models.EmailField(_("email address"), unique=True)
+    email_verified = models.BooleanField(_("email verified"), default=False)
+    phone = PhoneNumberField(_("phone number"), blank=True)
     picture = ImageField(
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
@@ -98,12 +114,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         Calendar, on_delete=models.SET_NULL, null=True, blank=True
     )
     accepted_terms = models.BooleanField(
-        _("Accepted Terms and Conditions"), default=False
+        _("accepted terms and conditions"), default=False
     )
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    role = models.CharField(_("Role"), max_length=16, choices=ROLES, default=STUDENT)
+    role = models.CharField(_("role"), max_length=16, choices=ROLES, default=STUDENT)
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
