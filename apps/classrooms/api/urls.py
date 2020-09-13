@@ -1,7 +1,9 @@
-from rest_framework import routers
 from django.urls import include, re_path
 from .views import (
-    CourseViewSet,
+    ListCreateCourseView,
+    CourseView,
+    has_requested_course,
+    has_joined_course,
     ClassroomCreateView,
     ClassroomView,
     create_join_meeting_room_link,
@@ -13,11 +15,11 @@ from .views import (
     UserCoursesView,
 )
 
-router = routers.DefaultRouter()
-router.register(r"courses", CourseViewSet)
-
 urlpatterns = [
-    re_path(r"^", include(router.urls)),
+    re_path(r"^courses/$", ListCreateCourseView.as_view()),
+    re_path(r"^courses/(?P<course_id>.+)/$", CourseView.as_view()),
+    re_path(r"^courses/(?P<course_id>.+)/requested/$", has_requested_course),
+    re_path(r"^courses/(?P<course_id>.+)/joined/$", has_joined_course),
     re_path(r"^classrooms/$", ClassroomCreateView.as_view(), name="api_classrooms"),
     re_path(
         r"^classrooms/(?P<classroom_id>.+)/$",

@@ -75,6 +75,12 @@ class Course(BaseModel):
     def students_count(self):
         return self.students.count()
 
+    def has_requested_course(self, user):
+        return self.requests.filter(student__user=user).exists()
+
+    def has_joined_course(self, user):
+        return self.students.filter(user=user).exists()
+
     def progress(self):
         # TODO: Implement course progress
         pass
@@ -287,7 +293,9 @@ class Request(BaseModel):
     teacher = models.ForeignKey(
         Teacher, on_delete=models.CASCADE, null=True, blank=True
     )
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name="requests"
+    )
     classrooms = models.ManyToManyField(
         Classroom, blank=True, help_text=_("Preferred classrooms to join")
     )

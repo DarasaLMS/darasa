@@ -22,13 +22,71 @@ from ..models import Course, Classroom, Request
 from .serializers import CourseSerializer, ClassroomSerializer, RequestSerializer
 
 
-class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.all().order_by("date_modified")
+class ListCreateCourseView(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ["name"]
     filterset_fields = ["educational_stages"]
+
+    def get_queryset(self):
+        queryset = Course.objects.all().order_by("date_modified")
+        proposed = self.request.query_params.get("proposed", None)
+        if proposed == "true":
+            return queryset.exclude(students__user__in=[self.request.user])
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        return super().get(self, request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class CourseView(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView,
+):
+    queryset = Course.objects.all().order_by("date_modified")
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "course_id"
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+@swagger_auto_schema(
+    method="GET",
+    manual_parameters=[
+        openapi.Parameter("course_id", openapi.IN_PATH, type=openapi.TYPE_STRING)
+    ],
+)
+@api_view(["GET"])
+def has_requested_course(request, course_id, *args, **kwargs):
+    course = get_object_or_404(Course.objects.all(), id=course_id)
+    return Response({"status": course.has_requested_course(request.user)})
+
+
+@swagger_auto_schema(
+    method="GET",
+    manual_parameters=[
+        openapi.Parameter("course_id", openapi.IN_PATH, type=openapi.TYPE_STRING)
+    ],
+)
+@api_view(["GET"])
+def has_joined_course(request, course_id, *args, **kwargs):
+    course = get_object_or_404(Course.objects.all(), id=course_id)
+    return Response({"status": course.has_joined_course(request.user)})
 
 
 class ClassroomCreateView(generics.CreateAPIView):
