@@ -13,6 +13,7 @@ from .views import (
     RequestView,
     UserClassroomsView,
     UserCoursesView,
+    UserRequestsView,
 )
 
 urlpatterns = [
@@ -27,6 +28,8 @@ urlpatterns = [
     re_path(r"^rooms/(?P<room_id>.+)/running/$", check_running_meeting),
     re_path(r"^requests/$", create_request_view),
     re_path(r"^requests/(?P<request_id>.+)/$", RequestView.as_view()),
+    # re_path(r"^requests/(?P<request_id>.+)/$", process_request),
     re_path(r"^users/(?P<user_id>.+)/classrooms/$", UserClassroomsView.as_view()),
     re_path(r"^users/(?P<user_id>.+)/courses/$", UserCoursesView.as_view()),
+    re_path(r"^users/(?P<user_id>.+)/requests/$", UserRequestsView.as_view()),
 ]

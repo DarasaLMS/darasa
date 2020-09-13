@@ -297,11 +297,9 @@ class Request(BaseModel):
         Course, on_delete=models.CASCADE, related_name="requests"
     )
     classrooms = models.ManyToManyField(
-        Classroom, blank=True, help_text=_("Preferred classrooms to join")
+        Classroom, blank=True, help_text=_("preferred classrooms to join")
     )
     status = models.CharField(max_length=16, choices=STATUS, default=PENDING)
-
-    _status = None
 
     class Meta:
         unique_together = [["student", "course"]]
@@ -311,26 +309,29 @@ class Request(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._status = self.status
 
-    def process_student_request(self):
+    def process_student_request(self, status):
         classrooms = []
         if self.course.classroom_join_mode == Course.JOIN_ALL:
             classrooms = self.course.classrooms.all()
         elif self.course.classroom_join_mode == Course.CHOOSE_TO_JOIN:
             classrooms = self.classrooms.all()
 
-        if self.status == Request.ACCEPTED:
-            # Add student to course
-            self.course.students.add(self.student)
-            # Add classroom to student's calendar
-            for classroom in classrooms:
-                if classroom.event:
-                    classroom.event.calendars.add(self.student.user.calendar)
+        if status == Request.ACCEPTED:
+            if self.student not in self.course.students.all():
+                # Add student to course
+                self.course.students.add(self.student)
+                # Add classroom to student's calendar
+                for classroom in classrooms:
+                    if classroom.event and (
+                        self.student.user.calendar
+                        not in classroom.event.calendars.all()
+                    ):
+                        classroom.event.calendars.add(self.student.user.calendar)
 
-            self.send_student_accept_email(classrooms)
+                self.send_student_accept_email(classrooms)
 
-        elif self.status == Request.DECLINED:
+        elif status == Request.DECLINED:
             self.send_student_decline_email()
 
     def send_student_accept_email(self, classrooms):
@@ -370,6 +371,3 @@ def post_save_request(sender, instance, created, **kwargs):
     if created:
         instance.teacher = instance.course.teacher
         instance.save()
-
-    if instance._status == Request.PENDING and instance.status == Request.ACCEPTED:
-        instance.process_student_request()

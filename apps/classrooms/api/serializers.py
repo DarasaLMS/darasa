@@ -112,17 +112,19 @@ class MiniClassroomSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
-    student = StudentSerializer(many=False, read_only=True)
-    teacher = TeacherSerializer(many=False, read_only=True)
-    classroom = ClassroomSerializer(many=False, read_only=True)
+    course = MiniCourseSerializer(many=False, required=False)
+    student = StudentSerializer(many=False, required=False)
+    teacher = TeacherSerializer(many=False, required=False)
+    classrooms = ClassroomSerializer(many=False, required=False)
 
     class Meta:
         model = Request
         fields = [
             "id",
+            "course",
             "student",
             "teacher",
-            "classroom",
+            "classrooms",
             "status",
             "date_created",
             "created_by",

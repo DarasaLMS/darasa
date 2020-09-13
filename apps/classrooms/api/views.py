@@ -104,7 +104,6 @@ class ClassroomView(
     serializer_class = ClassroomSerializer
     queryset = Classroom.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-
     lookup_url_kwarg = "classroom_id"
 
     def get(self, request, *args, **kwargs):
@@ -179,25 +178,22 @@ def create_request_view(request, *args, **kwargs):
 
 
 class RequestView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    generics.GenericAPIView,
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, generics.GenericAPIView
 ):
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
     permission_classes = [permissions.IsAuthenticated]
-
     lookup_url_kwarg = "request_id"
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
+        request_id = kwargs.get("request_id", None)
+        new_status = request.data.get("status", None)
+        course_request = get_object_or_404(Request.objects.all(), id=request_id)
+        course_request.process_student_request(new_status)
         return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
 
 
 class UserClassroomsView(generics.ListAPIView):
@@ -241,6 +237,30 @@ class UserCoursesView(generics.ListAPIView):
                     Q(teacher__user__id=user_id)
                     | Q(assistant_teachers__user__in=[user_id])
                     | Q(students__in=[student])
+                )
+            except Exception as error:
+                raise exceptions.APIException(error)
+
+        return super().get(self, request, *args, **kwargs)
+
+
+class UserRequestsView(generics.ListAPIView):
+    serializer_class = RequestSerializer
+    queryset = Request.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ["course__name"]
+    filterset_fields = ["status"]
+
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get("user_id", None)
+        if not is_valid_uuid(user_id):
+            raise exceptions.ValidationError("Invalid user_id")
+
+        if user_id:
+            try:
+                self.queryset = self.queryset.filter(
+                    Q(teacher__user__id=user_id) | Q(student__user__id=user_id)
                 )
             except Exception as error:
                 raise exceptions.APIException(error)
