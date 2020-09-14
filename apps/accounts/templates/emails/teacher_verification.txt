@@ -2,5 +2,5 @@ Dear {{ first_name }},
 
 Thank you for registering with {{ site_name }}.
 
-Regards,
+Best regards,
 The {{ site_name }} Team
