@@ -250,10 +250,10 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",  # allows access for swagger
     ),
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
-    "PAGE_SIZE": os.getenv("API_PAGE_SIZE", 20),
+    "PAGE_SIZE": os.getenv("API_PAGE_SIZE", 10),
     "UPLOADED_FILES_USE_URL": True,
 }
 
