@@ -33,7 +33,13 @@ class ListCreateCourseView(generics.ListCreateAPIView):
         queryset = Course.objects.all().order_by("date_modified")
         proposed = self.request.query_params.get("proposed", None)
         if proposed == "true":
-            return queryset.exclude(students__user__in=[self.request.user])
+            if self.request.user.role == "student":
+                return queryset.exclude(students__user__in=[self.request.user])
+            elif self.request.user.role == "teacher":
+                return queryset.exclude(
+                    Q(teacher__user=self.request.user)
+                    | Q(assistant_teachers__user__in=[self.request.user])
+                ).distinct()
 
         return queryset
 
@@ -208,12 +214,15 @@ class UserClassroomsView(generics.ListAPIView):
 
         if user_id:
             try:
-                student = Student.objects.filter(user__id=user_id).first()
+                user = User.objects.filter(id=user_id).first()
                 self.queryset = self.queryset.filter(
-                    Q(course__teacher__user__id=user_id)
-                    | Q(course__assistant_teachers__user__in=[user_id])
-                    | Q(course__students__in=[student])
+                    Q(course__teacher__user=user)
+                    | Q(course__assistant_teachers__user__in=[user])
+                    | Q(course__students__user__in=[user])
                 )
+                if user.role == "teacher":
+                    self.queryset = self.queryset.distinct()
+
             except Exception as error:
                 raise exceptions.APIException(error)
 
@@ -232,12 +241,15 @@ class UserCoursesView(generics.ListAPIView):
 
         if user_id:
             try:
-                student = Student.objects.filter(user__id=user_id).first()
+                user = User.objects.filter(id=user_id).first()
                 self.queryset = self.queryset.filter(
-                    Q(teacher__user__id=user_id)
-                    | Q(assistant_teachers__user__in=[user_id])
-                    | Q(students__in=[student])
+                    Q(teacher__user=user)
+                    | Q(assistant_teachers__user__in=[user])
+                    | Q(students__user__in=[user])
                 )
+                if user.role == "teacher":
+                    self.queryset = self.queryset.distinct()
+
             except Exception as error:
                 raise exceptions.APIException(error)
 
