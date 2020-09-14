@@ -1,0 +1,8 @@
+Hi {{ first_name }},
+
+Sorry, you have been suspended from {{ course }} course.
+
+Please contact the course teacher, {{ teacher }}, for the reason as to your suspension.
+
+Kind regards,
+{{ site_name }}
