@@ -28,6 +28,9 @@ REQUEST_ACCEPTED_HTML = get_template("emails/request_accepted.html")
 REQUEST_DECLINED_TXT = get_template("emails/request_declined.txt")
 REQUEST_DECLINED_HTML = get_template("emails/request_declined.html")
 
+REQUEST_SUSPENDED_TXT = get_template("emails/request_suspended.txt")
+REQUEST_SUSPENDED_HTML = get_template("emails/request_suspended.html")
+
 
 class Course(BaseModel):
     JOIN_ALL = "join_all"
@@ -331,14 +334,18 @@ class Request(BaseModel):
 
                 self.send_student_accept_email(classrooms)
 
-        elif status == Request.DECLINED:
+        elif status == Request.PENDING or status == Request.DECLINED:
             # Remove student if already added to course
             if self.student in self.course.students.all():
                 self.course.students.remove(self.student)
                 for classroom in classrooms:
                     classroom.event.calendars.remove(self.student.user.calendar)
 
-            self.send_student_decline_email()
+            if status == Request.PENDING:
+                self.send_student_suspend_email()
+
+            if status == Request.DECLINED:
+                self.send_student_decline_email()
 
     def send_student_accept_email(self, classrooms):
         data = {
@@ -366,6 +373,22 @@ class Request(BaseModel):
         html_content = REQUEST_DECLINED_HTML.render(data)
         send_email.delay(
             "Request to enroll in course {} has been declined".format(self.course.name),
+            text_content,
+            self.student.user.email,
+            html_content=html_content,
+        )
+
+    def send_student_suspend_email(self):
+        data = {
+            "first_name": self.student.user.first_name,
+            "course": self.course.name,
+            "teacher": self.teacher,
+            "site_name": settings.SITE_NAME,
+        }
+        text_content = REQUEST_SUSPENDED_TXT.render(data)
+        html_content = REQUEST_SUSPENDED_HTML.render(data)
+        send_email.delay(
+            "You have been suspended from {} course".format(self.course.name),
             text_content,
             self.student.user.email,
             html_content=html_content,
