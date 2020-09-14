@@ -332,6 +332,12 @@ class Request(BaseModel):
                 self.send_student_accept_email(classrooms)
 
         elif status == Request.DECLINED:
+            # Remove student if already added to course
+            if self.student in self.course.students.all():
+                self.course.students.remove(self.student)
+                for classroom in classrooms:
+                    classroom.event.calendars.remove(self.student.user.calendar)
+
             self.send_student_decline_email()
 
     def send_student_accept_email(self, classrooms):
