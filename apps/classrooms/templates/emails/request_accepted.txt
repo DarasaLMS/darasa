@@ -9,5 +9,5 @@ The course classrooms are as follows:
   {% if classroom.recurring.end_recurring_period %} until  {{ classroom.recurring.end_recurring_period }} {% endif %}
 {% endfor %}
 
-Thanks,
-The {{ site_name }} Team
+Best regards,
+{{ site_name }}
