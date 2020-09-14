@@ -289,7 +289,9 @@ class Teacher(models.Model):
     _was_verified = None
 
     def __str__(self):
-        return "{} {}".format(self.user.first_name, self.user.last_name)
+        return "{} {} {}".format(
+            self.user.title, self.user.first_name, self.user.last_name
+        )
 
     def __init__(self, *args, **kwargs):
         super(Teacher, self).__init__(*args, **kwargs)
