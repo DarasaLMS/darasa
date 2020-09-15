@@ -31,8 +31,8 @@ class ListCreateCourseView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Course.objects.all().order_by("date_modified")
-        proposed = self.request.query_params.get("proposed", None)
-        if proposed == "true":
+        recommended = self.request.query_params.get("recommended", None)
+        if recommended == "true":
             if self.request.user.role == "student":
                 return queryset.exclude(students__user__in=[self.request.user])
             elif self.request.user.role == "teacher":
