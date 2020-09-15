@@ -34,6 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "id",
+            "title",
             "first_name",
             "last_name",
             "nickname",
@@ -125,6 +126,7 @@ class MiniUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "id",
+            "title",
             "first_name",
             "last_name",
             "nickname",

@@ -40,6 +40,7 @@ class UserAdmin(UserAdmin):
             None,
             {
                 "fields": (
+                    "title",
                     "first_name",
                     "last_name",
                     "nickname",
