@@ -8,11 +8,16 @@ from rest_framework.generics import (
     RetrieveAPIView,
 )
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import exceptions, permissions, status, filters
+from rest_framework import exceptions, permissions, status, filters, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
-from ..models import VerificationToken, User, PasswordResetToken
-from .serializers import LoginSerializer, UserSerializer, PasswordResetRequestSerializer
+from ..models import VerificationToken, User, PasswordResetToken, EducationalStage
+from .serializers import (
+    LoginSerializer,
+    UserSerializer,
+    PasswordResetRequestSerializer,
+    EducationalStageSerializer,
+)
 
 
 class LoginView(TokenObtainPairView):
@@ -112,3 +117,9 @@ def password_reset_verify(request, **kwargs):
         # delete verification token after usage
         verification_token.delete()
         return Response({"success": True})
+
+
+class EducationalStageViewset(viewsets.ModelViewSet):
+    queryset = EducationalStage.objects.all()
+    serializer_class = EducationalStageSerializer
+    permission_classes = [permissions.IsAuthenticated]

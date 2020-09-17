@@ -1,4 +1,5 @@
-from django.urls import re_path
+from django.urls import re_path, path, include
+from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from .views import (
     LoginView,
@@ -8,10 +9,14 @@ from .views import (
     resend_email_verification,
     password_reset_verify,
     password_reset_request,
+    EducationalStageViewset,
 )
 
+router = routers.DefaultRouter()
+router.register(r"educational-stages", EducationalStageViewset)
 
 urlpatterns = [
+    re_path(r"^", include(router.urls)),
     re_path(r"^login/$", LoginView.as_view(), name="login_obtain_token"),
     re_path(
         r"^token/refresh/$", TokenRefreshView.as_view(), name="login_token_refresh"
