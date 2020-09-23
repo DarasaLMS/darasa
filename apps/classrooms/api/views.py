@@ -17,12 +17,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
-from apps.accounts.models import User
+from apps.accounts.models import User, EducationalStage, Teacher
 from ..models import Course, Classroom, Request
 from .serializers import CourseSerializer, ClassroomSerializer, RequestSerializer
 
 
-class ListCreateCourseView(generics.ListCreateAPIView):
+class CoursesView(generics.ListAPIView):
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -46,8 +46,67 @@ class ListCreateCourseView(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(self, request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "name": openapi.Schema(type=openapi.TYPE_STRING),
+            "description": openapi.Schema(type=openapi.TYPE_STRING),
+            "educational_stages": openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
+            ),
+            "classroom_join_mode": openapi.Schema(type=openapi.TYPE_STRING),
+            "cover": openapi.Schema(type=openapi.TYPE_STRING),
+            "teacher": openapi.Schema(type=openapi.TYPE_STRING),
+            "assistant_teachers": openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
+            ),
+            "students": openapi.Schema(
+                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
+            ),
+        },
+    ),
+)
+@api_view(["POST"])
+def create_course_view(request, *args, **kwargs):
+    name = request.data.get("name", None)
+    description = request.data.get("description", None)
+    educational_stages = request.data.get("educational_stages", [])
+    classroom_join_mode = request.data.get("classroom_join_mode", None)
+    cover = request.data.get("cover", None)
+    teacher_user_id = request.data.get("teacher", None)
+    assistant_teachers = request.data.get("assistant_teachers", [])
+    user = get_object_or_404(User.objects.all(), id=request.user.id)
+    try:
+        teacher = get_object_or_404(Teacher.objects.all(), user__id=teacher_user_id)
+        course, _ = Course.objects.get_or_create(
+            name=name,
+            description=description,
+            teacher=teacher,
+            classroom_join_mode=classroom_join_mode,
+            cover=cover,
+            created_by=user,
+            modified_by=user,
+        )
+
+        for stage_id in educational_stages:
+            stage = get_object_or_404(EducationalStage.objects.all(), id=stage_id)
+            if stage not in course.educational_stages.all():
+                course.educational_stages.add(stage)
+
+        for ateacher_user_id in assistant_teachers:
+            assitant_teacher = get_object_or_404(
+                Teacher.objects.all(), user__id=ateacher_user_id
+            )
+            if assitant_teacher not in course.assistant_teachers.all():
+                course.assistant_teachers.add(assitant_teacher)
+
+        return Response(CourseSerializer(instance=course).data)
+
+    except Exception as error:
+        raise exceptions.APIException(error)
 
 
 class CourseView(

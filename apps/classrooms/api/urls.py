@@ -1,6 +1,7 @@
 from django.urls import include, re_path
 from .views import (
-    ListCreateCourseView,
+    CoursesView,
+    create_course_view,
     CourseView,
     has_requested_course,
     has_joined_course,
@@ -17,7 +18,8 @@ from .views import (
 )
 
 urlpatterns = [
-    re_path(r"^courses/$", ListCreateCourseView.as_view()),
+    re_path(r"^courses/$", create_course_view),
+    re_path(r"^courses/$", CoursesView.as_view()),
     re_path(r"^courses/(?P<course_id>.+)/requested/$", has_requested_course),
     re_path(r"^courses/(?P<course_id>.+)/joined/$", has_joined_course),
     re_path(r"^courses/(?P<course_id>.+)/$", CourseView.as_view()),
