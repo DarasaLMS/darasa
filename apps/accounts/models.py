@@ -290,7 +290,9 @@ class Teacher(models.Model):
 
     def __str__(self):
         return "{} {} {}".format(
-            self.user.title, self.user.first_name, self.user.last_name
+            str(self.user.title or "").title(),
+            str(self.user.first_name or "").title(),
+            str(self.user.last_name or "").title(),
         )
 
     def __init__(self, *args, **kwargs):

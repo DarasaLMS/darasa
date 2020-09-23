@@ -64,6 +64,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {"password": {"write_only": True}}
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["title"] = ret["title"].title()
+        ret["first_name"] = ret["first_name"].title()
+        ret["last_name"] = ret["last_name"].title()
+        return ret
+
     def create(self, validated_data):
         student = None
         teacher = None
@@ -135,6 +142,13 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "phone",
             "picture",
         )
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["title"] = ret["title"].title()
+        ret["first_name"] = ret["first_name"].title()
+        ret["last_name"] = ret["last_name"].title()
+        return ret
 
 
 class StudentSerializer(serializers.ModelSerializer):
