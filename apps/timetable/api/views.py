@@ -305,7 +305,7 @@ def api_create_event(request, **kwargs):
 
         rule = None
         if rule_id:
-            rule = Calendar.objects.filter(id=rule_id).first()
+            rule = Rule.objects.filter(id=rule_id).first()
 
         event = Event.objects.create(
             start=start,
