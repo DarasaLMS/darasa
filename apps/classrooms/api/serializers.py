@@ -23,6 +23,8 @@ class PostSerializer(serializers.ModelSerializer):
 
 class CourseClassroomSerializer(serializers.ModelSerializer):
     event = EventSerializer(many=False, required=False)
+    created_by = serializers.StringRelatedField()
+    modified_by = serializers.StringRelatedField()
 
     class Meta:
         model = Classroom
@@ -52,6 +54,8 @@ class CourseSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(many=True, required=False)
     posts = PostSerializer(many=True, required=False)
     classrooms = CourseClassroomSerializer(many=True, required=False)
+    created_by = serializers.StringRelatedField()
+    modified_by = serializers.StringRelatedField()
 
     class Meta:
         model = Course
@@ -82,6 +86,8 @@ class MiniCourseSerializer(serializers.ModelSerializer):
 
 class ClassroomSerializer(serializers.ModelSerializer):
     course = CourseSerializer(many=False, read_only=True)
+    created_by = serializers.StringRelatedField()
+    modified_by = serializers.StringRelatedField()
 
     class Meta:
         model = Classroom
@@ -116,6 +122,8 @@ class RequestSerializer(serializers.ModelSerializer):
     student = StudentSerializer(many=False, required=False)
     teacher = TeacherSerializer(many=False, required=False)
     classrooms = ClassroomSerializer(many=False, required=False)
+    created_by = serializers.StringRelatedField()
+    modified_by = serializers.StringRelatedField()
 
     class Meta:
         model = Request
