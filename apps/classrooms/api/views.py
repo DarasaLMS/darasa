@@ -1,3 +1,5 @@
+import datetime
+import dateutil.parser
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -18,6 +20,7 @@ from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
 from apps.accounts.models import User, EducationalStage, Teacher
+from apps.timetable.models import Event, Rule
 from ..models import Course, Classroom, Request
 from .serializers import CourseSerializer, ClassroomSerializer, RequestSerializer
 
@@ -63,9 +66,6 @@ class CoursesView(generics.ListAPIView):
             "assistant_teachers": openapi.Schema(
                 type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
             ),
-            "students": openapi.Schema(
-                type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
-            ),
         },
     ),
 )
@@ -78,18 +78,22 @@ def create_course_view(request, *args, **kwargs):
     cover = request.data.get("cover", None)
     teacher_user_id = request.data.get("teacher", None)
     assistant_teachers = request.data.get("assistant_teachers", [])
-    user = get_object_or_404(User.objects.all(), id=request.user.id)
+
     try:
         teacher = get_object_or_404(Teacher.objects.all(), user__id=teacher_user_id)
-        course, _ = Course.objects.get_or_create(
-            name=name,
-            description=description,
-            teacher=teacher,
-            classroom_join_mode=classroom_join_mode,
-            cover=cover,
-            created_by=user,
-            modified_by=user,
+        course, course_created = Course.objects.get_or_create(
+            name=name, teacher=teacher
         )
+
+        if course_created:
+            course.created_by = request.user
+        else:
+            course.modified_by = request.user
+
+        course.description = description
+        course.classroom_join_mode = classroom_join_mode
+        course.cover = cover
+        course.save()
 
         for stage_id in educational_stages:
             stage = get_object_or_404(EducationalStage.objects.all(), id=stage_id)
@@ -154,10 +158,75 @@ def has_joined_course(request, course_id, *args, **kwargs):
     return Response({"status": course.has_joined_course(request.user)})
 
 
-class ClassroomCreateView(generics.CreateAPIView):
-    queryset = Classroom.objects.all()
-    serializer_class = ClassroomSerializer
-    permission_classes = [permissions.IsAuthenticated]
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "name": openapi.Schema(type=openapi.TYPE_STRING),
+            "description": openapi.Schema(type=openapi.TYPE_STRING),
+            "welcome_message": openapi.Schema(type=openapi.TYPE_STRING),
+            "duration": openapi.Schema(type=openapi.TYPE_NUMBER),
+            "start_datetime": openapi.Schema(type=openapi.TYPE_STRING),
+            "repeat": openapi.Schema(type=openapi.TYPE_STRING),
+            "repeat_until": openapi.Schema(type=openapi.TYPE_STRING),
+            "color": openapi.Schema(type=openapi.TYPE_STRING),
+            "course_id": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+def create_classroom_view(request, *args, **kwargs):
+    name = request.data.get("name", None)
+    description = request.data.get("description", None)
+    welcome_message = request.data.get("welcome_message", None)
+    duration = request.data.get("duration", 0)
+    start_datetime = request.data.get("start_datetime", None)
+    repeat = request.data.get("repeat", "")
+    repeat_until = request.data.get("repeat_until", None)
+    color = request.data.get("color", None)
+    course_id = request.data.get("course_id", None)
+
+    try:
+        course = get_object_or_404(Course.objects.all(), id=course_id)
+        classroom, classroom_created = Classroom.objects.get_or_create(
+            name=name, course=course
+        )
+
+        if classroom_created:
+            classroom.created_by = request.user
+        else:
+            classroom.modified_by = request.user
+
+        classroom.description = description
+        classroom.welcome_message = welcome_message
+        classroom.save()
+
+        rule, _ = Rule.objects.get_or_create(name=repeat.lower(), frequency=repeat)
+
+        # Parse dates
+        start = dateutil.parser.parse(start_datetime)
+        end = start + datetime.timedelta(minutes=int(duration))
+        end_recurring_period = dateutil.parser.parse(repeat_until)
+
+        event, event_created = Event.objects.get_or_create(
+            start=start, end=end, classroom=classroom
+        )
+
+        if event_created:
+            event.created_by = request.user
+        else:
+            event.modified_by = request.user
+
+        event.rule = rule
+        event.end_recurring_period = end_recurring_period
+        event.color = color
+        event.save()
+
+        return Response(ClassroomSerializer(instance=classroom).data)
+
+    except Exception as error:
+        raise exceptions.APIException(error)
 
 
 class ClassroomView(
