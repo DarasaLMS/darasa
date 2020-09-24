@@ -21,8 +21,13 @@ from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
 from apps.accounts.models import User, EducationalStage, Teacher
 from apps.timetable.models import Event, Rule
-from ..models import Course, Classroom, Request
-from .serializers import CourseSerializer, ClassroomSerializer, RequestSerializer
+from ..models import Course, Lesson, Classroom, Request
+from .serializers import (
+    CourseSerializer,
+    ClassroomSerializer,
+    RequestSerializer,
+    LessonSerializer,
+)
 
 
 class CoursesView(generics.ListAPIView):
@@ -156,6 +161,62 @@ def has_requested_course(request, course_id, *args, **kwargs):
 def has_joined_course(request, course_id, *args, **kwargs):
     course = get_object_or_404(Course.objects.all(), id=course_id)
     return Response({"status": course.has_joined_course(request.user)})
+
+
+@swagger_auto_schema(
+    method="GET",
+    manual_parameters=[
+        openapi.Parameter("course_id", openapi.IN_PATH, type=openapi.TYPE_STRING)
+    ],
+)
+@api_view(["GET"])
+def get_course_lessons(request, course_id, *args, **kwargs):
+    course = get_object_or_404(Course.objects.all(), id=course_id)
+    return Response(LessonSerializer(course.lessons, many=True).data)
+
+
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "name": openapi.Schema(type=openapi.TYPE_STRING),
+            "description": openapi.Schema(type=openapi.TYPE_STRING),
+            "notes": openapi.Schema(type=openapi.TYPE_STRING),
+            "parent_lesson": openapi.Schema(type=openapi.TYPE_STRING),
+            "position": openapi.Schema(type=openapi.TYPE_STRING),
+            "course_id": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+def create_lessons(request, *args, **kwargs):
+    name = request.data.get("name", None)
+    description = request.data.get("description", None)
+    notes = request.data.get("notes", None)
+    parent_lesson = request.data.get("parent_lesson", None)
+    position = request.data.get("position", 0)
+    course_id = request.data.get("course_id", None)
+
+    try:
+        course = get_object_or_404(Course.objects.all(), id=course_id)
+        lesson, lesson_created = Lesson.objects.get_or_create(name=name, course=course)
+
+        if lesson_created:
+            lesson.created_by = request.user
+        else:
+            lesson.modified_by = request.user
+
+        lesson.description = description
+        lesson.notes = notes
+        lesson.parent_lesson = Lesson.objects.filter(id=parent_lesson).first()
+        lesson.position = position
+        lesson.save()
+
+        return Response(LessonSerializer(instance=lesson).data)
+
+    except Exception as error:
+        raise exceptions.APIException(error)
 
 
 @swagger_auto_schema(

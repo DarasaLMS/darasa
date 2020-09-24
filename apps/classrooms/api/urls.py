@@ -5,6 +5,8 @@ from .views import (
     CourseView,
     has_requested_course,
     has_joined_course,
+    get_course_lessons,
+    create_lessons,
     create_classroom_view,
     ClassroomView,
     create_join_meeting_room_link,
@@ -18,11 +20,13 @@ from .views import (
 )
 
 urlpatterns = [
-    re_path(r"^courses/$", create_course_view),
     re_path(r"^courses/$", CoursesView.as_view()),
+    re_path(r"^courses/add/$", create_course_view),
     re_path(r"^courses/(?P<course_id>.+)/requested/$", has_requested_course),
     re_path(r"^courses/(?P<course_id>.+)/joined/$", has_joined_course),
+    re_path(r"^courses/(?P<course_id>.+)/lessons/$", get_course_lessons),
     re_path(r"^courses/(?P<course_id>.+)/$", CourseView.as_view()),
+    re_path(r"^lessons/$", create_lessons),
     re_path(r"^classrooms/$", create_classroom_view),
     re_path(r"^classrooms/(?P<classroom_id>.+)/$", ClassroomView.as_view()),
     re_path(r"^rooms/(?P<room_id>.+)/join/$", create_join_meeting_room_link),
@@ -30,7 +34,6 @@ urlpatterns = [
     re_path(r"^rooms/(?P<room_id>.+)/running/$", check_running_meeting),
     re_path(r"^requests/$", create_request_view),
     re_path(r"^requests/(?P<request_id>.+)/$", RequestView.as_view()),
-    # re_path(r"^requests/(?P<request_id>.+)/$", process_request),
     re_path(r"^users/(?P<user_id>.+)/classrooms/$", UserClassroomsView.as_view()),
     re_path(r"^users/(?P<user_id>.+)/courses/$", UserCoursesView.as_view()),
     re_path(r"^users/(?P<user_id>.+)/requests/$", UserRequestsView.as_view()),
