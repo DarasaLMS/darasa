@@ -78,28 +78,12 @@ def api_occurrences(request, calendar_id, **kwargs):
 
 # flake8: noqa: C901
 def _api_occurrences(request, start, end, calendar_id, tz, include_students=False):
-
     if not start or not end:
-        raise ValueError("Start and end parameters are required")
+        raise ValueError("Start and end datetime parameters are required")
 
-    if "-" in start:
+    start = dateutil.parser.parse(start)
+    end = dateutil.parser.parse(end)
 
-        def convert(ddatetime):
-            if ddatetime:
-                ddatetime = ddatetime.split(" ")[0]
-                try:
-                    return datetime.datetime.strptime(ddatetime, "%Y-%m-%d")
-                except ValueError:
-                    # try a different date string format first before failing
-                    return datetime.datetime.strptime(ddatetime, "%Y-%m-%dT%H:%M:%S")
-
-    else:
-
-        def convert(ddatetime):
-            return datetime.datetime.utcfromtimestamp(float(ddatetime))
-
-    start = convert(start)
-    end = convert(end)
     current_tz = False
     if tz and tz in pytz.common_timezones:
         # make start and end dates aware in given timezone
@@ -118,6 +102,7 @@ def _api_occurrences(request, start, end, calendar_id, tz, include_students=Fals
     # if no calendar slug is given, get all the calendars
     else:
         calendars = Calendar.objects.all()
+
     response_data = []
     # Algorithm to get an id for the occurrences in fullcalendar (NOT THE SAME
     # AS IN THE DB) which are always unique.
