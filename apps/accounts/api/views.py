@@ -31,6 +31,7 @@ class UserLisCreateView(ListCreateAPIView):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ["first_name", "last_name", "nickname", "email", "phone"]
     filterset_fields = ["is_staff", "is_active", "role"]
+    ordering = ["first_name"]
 
 
 class UserRetrieveView(RetrieveAPIView):
