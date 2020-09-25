@@ -93,6 +93,7 @@ class Lesson(BaseModel):
     name = models.CharField(_("name"), max_length=255)
     description = models.TextField(_("description"), blank=True)
     notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
+    position = models.IntegerField(_("position"), default=0)
     course = models.ForeignKey(
         Course,
         on_delete=models.PROTECT,
@@ -100,9 +101,12 @@ class Lesson(BaseModel):
         related_name="lessons",
     )
     parent_lesson = models.ForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children_lessons",
     )
-    position = models.IntegerField(_("position"), default=0)
 
 
 class Post(BaseModel):
@@ -122,7 +126,11 @@ class Post(BaseModel):
         Course, on_delete=models.PROTECT, verbose_name=_("course"), related_name="posts"
     )
     parent_post = models.ForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children_posts",
     )
 
 

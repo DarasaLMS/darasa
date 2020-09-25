@@ -9,7 +9,15 @@ from apps.timetable.api.serializers import EventSerializer
 from ..models import Course, Lesson, Post, Classroom, Request
 
 
+class RecursiveField(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
 class LessonSerializer(serializers.ModelSerializer):
+    children_lessons = RecursiveField(many=True)
+
     class Meta:
         model = Lesson
         fields = [
@@ -20,13 +28,24 @@ class LessonSerializer(serializers.ModelSerializer):
             "course",
             "parent_lesson",
             "position",
+            "children_lessons",
         ]
 
 
 class PostSerializer(serializers.ModelSerializer):
+    children_posts = RecursiveField(many=True)
+
     class Meta:
         model = Post
-        fields = ["id", "name", "description", "category", "course", "parent_post"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "category",
+            "course",
+            "parent_post",
+            "children_posts",
+        ]
 
 
 class CourseClassroomSerializer(serializers.ModelSerializer):
