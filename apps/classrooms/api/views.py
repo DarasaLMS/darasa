@@ -164,18 +164,6 @@ def has_joined_course(request, course_id, *args, **kwargs):
 
 
 @swagger_auto_schema(
-    method="GET",
-    manual_parameters=[
-        openapi.Parameter("course_id", openapi.IN_PATH, type=openapi.TYPE_STRING)
-    ],
-)
-@api_view(["GET"])
-def get_course_lessons(request, course_id, *args, **kwargs):
-    course = get_object_or_404(Course.objects.all(), id=course_id)
-    return Response(LessonSerializer(course.lessons, many=True).data)
-
-
-@swagger_auto_schema(
     method="POST",
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
