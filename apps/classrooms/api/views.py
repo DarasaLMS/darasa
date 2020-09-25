@@ -283,6 +283,8 @@ def create_classroom_view(request, *args, **kwargs):
         event.end_recurring_period = end_recurring_period
         event.color = color
         event.save()
+        # Add scheduled class to teachers calendar
+        event.calendars.add(course.teacher.user.calendar)
 
         return Response(ClassroomSerializer(instance=classroom).data)
 
