@@ -34,6 +34,8 @@ class LessonSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     children_posts = RecursiveField(many=True)
+    created_by = serializers.StringRelatedField()
+    modified_by = serializers.StringRelatedField()
 
     class Meta:
         model = Post
@@ -45,6 +47,10 @@ class PostSerializer(serializers.ModelSerializer):
             "course",
             "parent_post",
             "children_posts",
+            "date_created",
+            "created_by",
+            "date_modified",
+            "modified_by",
         ]
 
 
