@@ -78,11 +78,11 @@ class CoursesView(generics.ListAPIView):
 def create_course_view(request, *args, **kwargs):
     name = request.data.get("name", None)
     description = request.data.get("description", None)
-    educational_stages = request.data.get("educational_stages", [])
+    educational_stages = request.data.get("educational_stages", "")
     classroom_join_mode = request.data.get("classroom_join_mode", None)
     cover = request.data.get("cover", None)
     teacher_user_id = request.data.get("teacher", None)
-    assistant_teachers = request.data.get("assistant_teachers", [])
+    assistant_teachers = request.data.get("assistant_teachers", "")
 
     try:
         teacher = get_object_or_404(Teacher.objects.all(), user__id=teacher_user_id)
@@ -100,12 +100,12 @@ def create_course_view(request, *args, **kwargs):
         course.cover = cover
         course.save()
 
-        for stage_id in educational_stages:
+        for stage_id in educational_stages.split(","):
             stage = get_object_or_404(EducationalStage.objects.all(), id=stage_id)
             if stage not in course.educational_stages.all():
                 course.educational_stages.add(stage)
 
-        for ateacher_user_id in assistant_teachers:
+        for ateacher_user_id in assistant_teachers.split(","):
             assitant_teacher = get_object_or_404(
                 Teacher.objects.all(), user__id=ateacher_user_id
             )
