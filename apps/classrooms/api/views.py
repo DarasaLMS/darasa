@@ -21,12 +21,13 @@ from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
 from apps.accounts.models import User, EducationalStage, Teacher
 from apps.timetable.models import Event, Rule
-from ..models import Course, Lesson, Classroom, Request
+from ..models import Course, Lesson, Post, Classroom, Request
 from .serializers import (
     CourseSerializer,
     ClassroomSerializer,
     RequestSerializer,
     LessonSerializer,
+    PostSerializer,
 )
 
 
@@ -202,6 +203,47 @@ def create_lessons(request, *args, **kwargs):
         lesson.save()
 
         return Response(LessonSerializer(instance=lesson).data)
+
+    except Exception as error:
+        raise exceptions.APIException(error)
+
+
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "name": openapi.Schema(type=openapi.TYPE_STRING),
+            "description": openapi.Schema(type=openapi.TYPE_STRING),
+            "parent_post": openapi.Schema(type=openapi.TYPE_STRING),
+            "category": openapi.Schema(type=openapi.TYPE_STRING),
+            "course_id": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+def create_post_view(request, *args, **kwargs):
+    name = request.data.get("name", None)
+    description = request.data.get("description", None)
+    parent_post = request.data.get("parent_post", None)
+    category = request.data.get("category", None)
+    course_id = request.data.get("course_id", None)
+
+    try:
+        course = get_object_or_404(Course.objects.all(), id=course_id)
+        post, post_created = Post.objects.get_or_create(name=name, course=course)
+
+        if post_created:
+            post.created_by = request.user
+        else:
+            post.modified_by = request.user
+
+        post.description = description
+        post.parent_post = Post.objects.filter(id=parent_post).first()
+        post.category = category
+        post.save()
+
+        return Response(PostSerializer(instance=post).data)
 
     except Exception as error:
         raise exceptions.APIException(error)
