@@ -482,8 +482,13 @@ class UserRequestsView(generics.ListAPIView):
     queryset = Request.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ["course__name"]
-    filterset_fields = ["status"]
+    search_fields = [
+        "course__name",
+        "status",
+        "student__user__first_name",
+        "student__user__last_name",
+    ]
+    filterset_fields = ["status", "course__name"]
 
     def get(self, request, *args, **kwargs):
         user_id = kwargs.get("user_id", None)
