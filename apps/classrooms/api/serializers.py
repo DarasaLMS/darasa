@@ -26,7 +26,7 @@ class LessonSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["name", "description", "category", "course", "parent_post"]
+        fields = ["id", "name", "description", "category", "course", "parent_post"]
 
 
 class CourseClassroomSerializer(serializers.ModelSerializer):
