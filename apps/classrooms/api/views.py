@@ -179,7 +179,7 @@ def has_joined_course(request, course_id, *args, **kwargs):
     ),
 )
 @api_view(["POST"])
-def create_lessons(request, *args, **kwargs):
+def create_lesson_view(request, *args, **kwargs):
     name = request.data.get("name", None)
     description = request.data.get("description", None)
     notes = request.data.get("notes", None)
