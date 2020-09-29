@@ -2,11 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
-from rest_framework.generics import (
-    get_object_or_404,
-    ListCreateAPIView,
-    RetrieveAPIView,
-)
+from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, filters, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -24,7 +20,7 @@ class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
 
 
-class UserLisCreateView(ListCreateAPIView):
+class UserListView(ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -32,6 +28,49 @@ class UserLisCreateView(ListCreateAPIView):
     search_fields = ["first_name", "last_name", "nickname", "email", "phone"]
     filterset_fields = ["is_staff", "is_active", "role"]
     ordering = ["first_name"]
+
+
+@swagger_auto_schema(
+    method="POST",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "email": openapi.Schema(type=openapi.TYPE_STRING),
+            "password": openapi.Schema(type=openapi.TYPE_STRING),
+            "role": openapi.Schema(type=openapi.TYPE_STRING),
+            "accept_terms": openapi.Schema(type=openapi.TYPE_STRING),
+            "certificate": openapi.Schema(type=openapi.TYPE_STRING),
+            "title": openapi.Schema(type=openapi.TYPE_STRING),
+        },
+    ),
+)
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def create_user_view(request, *args, **kwargs):
+    first_name = request.data.get("first_name", None)
+    last_name = request.data.get("last_name", None)
+    email = request.data.get("email", None)
+    password = request.data.get("password", None)
+    role = request.data.get("role", None)
+    accept_terms = request.data.get("accept_terms", None)
+    certificate = request.data.get("certificate", None)
+    title = request.data.get("title", None)
+
+    try:
+        user, _ = User.objects.get_or_create(email=email)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.password = password
+        user.role = role
+        user.accept_terms = accept_terms
+        user.certificate = certificate
+        user.title = title
+        return Response(UserSerializer(instance=user).data)
+
+    except Exception as error:
+        raise exceptions.APIException(error)
 
 
 class UserRetrieveView(RetrieveAPIView):
