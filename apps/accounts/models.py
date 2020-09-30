@@ -88,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     MISS = "miss"
     MS = "ms"
     DR = "dr"
-    PROF = "professor"
+    PROF = "prof"
     TITLES = (
         (MR, _("Mr")),
         (MRS, _("Mrs")),
@@ -99,7 +99,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(_("title"), max_length=16, blank=True, choices=TITLES)
+    title = models.CharField(
+        _("title"), max_length=16, null=True, blank=True, choices=TITLES
+    )
     first_name = models.CharField(_("first name"), max_length=32, blank=True)
     last_name = models.CharField(_("last name"), max_length=32, blank=True)
     nickname = models.CharField(_("display name"), max_length=32, blank=True)
