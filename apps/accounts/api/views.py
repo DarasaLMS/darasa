@@ -41,7 +41,7 @@ class UserListView(ListAPIView):
             "password": openapi.Schema(type=openapi.TYPE_STRING),
             "role": openapi.Schema(type=openapi.TYPE_STRING),
             "accept_terms": openapi.Schema(type=openapi.TYPE_STRING),
-            "certificate": openapi.Schema(type=openapi.TYPE_STRING),
+            "certificate": openapi.Schema(type=openapi.TYPE_FILE),
             "title": openapi.Schema(type=openapi.TYPE_STRING),
         },
     ),
@@ -51,12 +51,12 @@ class UserListView(ListAPIView):
 def create_user_view(request, *args, **kwargs):
     first_name = request.data.get("first_name", None)
     last_name = request.data.get("last_name", None)
+    title = request.data.get("title", "")
     email = request.data.get("email", None)
     password = request.data.get("password", None)
     role = request.data.get("role", None)
-    accept_terms = request.data.get("accept_terms", None)
+    accept_terms = request.data.get("accept_terms", False)
     certificate = request.data.get("certificate", None)
-    title = request.data.get("title", None)
 
     try:
         user, _ = User.objects.get_or_create(email=email)
@@ -64,9 +64,10 @@ def create_user_view(request, *args, **kwargs):
         user.last_name = last_name
         user.password = password
         user.role = role
-        user.accept_terms = accept_terms
+        user.accepted_terms = accept_terms == "true"
         user.certificate = certificate
         user.title = title
+        user.save()
         return Response(UserSerializer(instance=user).data)
 
     except Exception as error:
