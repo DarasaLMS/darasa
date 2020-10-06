@@ -246,7 +246,38 @@ class PasswordResetToken(models.Model):
         return "{}".format(self.token)
 
 
+class School(models.Model):
+    ENROLL_ALL = "enroll_all"
+    CHOOSE_TO_ENROLL = "choose_to_enroll"
+    COURSE_ENROLL_MODES = (
+        (ENROLL_ALL, _("Enroll to all courses per student's educational stage")),
+        (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=256)
+    about = models.TextField(blank=True)
+    moto = models.CharField(max_length=256)
+    logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
+    color = models.CharField(_("color"), blank=True, max_length=10)
+    phone = PhoneNumberField(_("phone number"), blank=True, null=True)
+    email = models.EmailField(_("email address"), blank=True, null=True)
+    support_email = models.EmailField(_("support email address"), blank=True, null=True)
+    terms_and_privacy = models.TextField(blank=True)
+    enroll_mode = models.CharField(
+        _("course enroll mode"),
+        max_length=32,
+        choices=COURSE_ENROLL_MODES,
+        default=ENROLL_ALL,
+    )
+    allow_teacher_verification = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+
 class EducationalStage(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
 
@@ -360,29 +391,3 @@ def delete_document_if_verified(sender, instance, **kwargs):
             instance.verification_file = None
         except Exception:
             logger.exception("Exception occured while trying to delete verified file")
-
-
-class School(models.Model):
-    ENROLL_ALL = "enroll_all"
-    CHOOSE_TO_ENROLL = "choose_to_enroll"
-    COURSE_ENROLL_MODES = (
-        (ENROLL_ALL, _("Enroll to all courses per student's educational stage")),
-        (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256)
-    logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
-    color = models.CharField(_("color"), blank=True, max_length=10)
-    phone = PhoneNumberField(_("Phone number"), blank=True)
-    email = models.EmailField(_("Email address"), unique=True)
-    enroll_mode = models.CharField(
-        _("course enroll mode"),
-        max_length=32,
-        choices=COURSE_ENROLL_MODES,
-        default=CHOOSE_TO_ENROLL,
-    )
-    allow_teacher_verification = models.BooleanField(default=False)
-
-    def __str__(self):
-        return "{}".format(self.name)

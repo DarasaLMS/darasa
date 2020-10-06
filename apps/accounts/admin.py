@@ -117,6 +117,7 @@ class SchoolAdmin(admin.ModelAdmin):
         "color",
         "phone",
         "email",
+        "support_email",
         "enroll_mode",
         "allow_teacher_verification",
     )
@@ -127,10 +128,14 @@ class SchoolAdmin(admin.ModelAdmin):
             {
                 "fields": [
                     "name",
+                    "about",
+                    "moto",
                     "logo",
                     "color",
                     "phone",
                     "email",
+                    "support_email",
+                    "terms_and_privacy",
                     "enroll_mode",
                     "allow_teacher_verification",
                 ]

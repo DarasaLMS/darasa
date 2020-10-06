@@ -10,10 +10,12 @@ from .views import (
     reset_password,
     request_password_reset,
     EducationalStageViewset,
+    SchoolViewset,
 )
 
 router = routers.DefaultRouter()
 router.register(r"educational-stages", EducationalStageViewset)
+router.register(r"schools", SchoolViewset)
 
 urlpatterns = [
     re_path(r"^", include(router.urls)),
