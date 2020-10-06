@@ -120,7 +120,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     role = models.CharField(_("role"), max_length=16, choices=ROLES, default=STUDENT)
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
@@ -147,7 +147,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             to_email = self.email
             data = {
                 "first_name": self.first_name,
-                "verification_url": "{}/accounts/verify?token={}".format(
+                "verification_url": "{}/account-verified/?token={}".format(
                     settings.HOST, str(token.token)
                 ),
                 "site_name": settings.SITE_NAME,
@@ -181,7 +181,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         data = {
             "first_name": self.first_name,
             "email": self.email,
-            "reset_url": "{}/accounts/password/reset?token={}".format(
+            "reset_url": "{}/new-password?token={}".format(
                 settings.HOST, pwd_reset_token.token
             ),
             "site_name": settings.SITE_NAME,
@@ -207,12 +207,12 @@ def post_save_user(sender, instance, created, **kwargs):
         if instance.role == User.STUDENT:
             student_model = apps.get_model("accounts", "student")
             student_model.objects.get_or_create(user=instance)
+
         elif instance.role == User.TEACHER:
             teacher_model = apps.get_model("accounts", "teacher")
             teacher_model.objects.get_or_create(user=instance)
 
-    elif instance._email.lower() != instance.email.lower():
-        # If email has changed
+        # Send account verification email
         instance.send_verification_email()
 
     if not instance.calendar:

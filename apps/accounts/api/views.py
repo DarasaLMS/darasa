@@ -59,7 +59,12 @@ def create_user_view(request, *args, **kwargs):
     certificate = request.data.get("certificate", None)
 
     try:
-        user, _ = User.objects.get_or_create(email=email)
+        user, user_created = User.objects.get_or_create(email=email)
+        if not user_created:
+            return Response(
+                "User account already exists!", status=status.HTTP_409_CONFLICT
+            )
+
         user.first_name = first_name
         user.last_name = last_name
         user.password = password
@@ -90,29 +95,19 @@ class UserRetrieveView(RetrieveAPIView):
 )
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-def verify_email(request, **kwargs):
+def verify_account(request, **kwargs):
     token = request.data.get("token", None)
     if not token:
         raise exceptions.NotAcceptable(detail=_("Token not found!"))
 
     verification_token = get_object_or_404(VerificationToken, token=token)
     if verification_token.user.check_email_verification(verification_token.token):
-        return Response({"success": True})
+        verification_token.user.is_active = True
+        verification_token.user.save()
+        return Response(UserSerializer(instance=verification_token.user).data)
 
     return Response(
         {"error": _("Token not valid!")}, status=status.HTTP_400_BAD_REQUEST
-    )
-
-
-@api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated])
-def resend_email_verification(request, **kwargs):
-    sent = request.user.send_verification_email()
-    if sent:
-        return Response({"success": True})
-
-    return Response(
-        {"error": _("Email already verified!")}, status=status.HTTP_400_BAD_REQUEST
     )
 
 
@@ -125,7 +120,7 @@ def resend_email_verification(request, **kwargs):
 )
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-def password_reset_request(request, **kwargs):
+def request_password_reset(request, **kwargs):
     serializer = PasswordResetRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -145,19 +140,19 @@ def password_reset_request(request, **kwargs):
 )
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
-def password_reset_verify(request, **kwargs):
+def reset_password(request, **kwargs):
     password = request.data.get("password", None)
     token = request.data.get("token", None)
     verification_token = get_object_or_404(PasswordResetToken, token=token)
     if not password:
         raise exceptions.ValidationError({"password": _("Password must be specified!")})
-    else:
-        user = verification_token.user
-        user.set_password(password)
-        user.save()
-        # delete verification token after usage
-        verification_token.delete()
-        return Response({"success": True})
+
+    user = verification_token.user
+    user.set_password(password)
+    user.save()
+    # delete verification token after usage
+    verification_token.delete()
+    return Response({"success": True})
 
 
 class EducationalStageViewset(viewsets.ModelViewSet):
