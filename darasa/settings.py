@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_countries",
     "phonenumber_field",
+    "ckeditor",
     "apps.core",
     "apps.accounts",
     "apps.classrooms",
@@ -295,3 +296,29 @@ CELERY_TASK_SERIALIZER = "json"
 # Timetable settings
 
 SHOW_CANCELLED_OCCURRENCES = os.getenv("SHOW_CANCELLED_OCCURRENCES", False)
+
+
+# CKEditor settings
+
+CKEDITOR_CONFIGS = {
+    "default": {
+        "toolbar": "Custom",
+        "toolbar_Custom": [
+            ["Bold", "Italic", "Underline"],
+            [
+                "NumberedList",
+                "BulletedList",
+                "-",
+                "Outdent",
+                "Indent",
+                "-",
+                "JustifyLeft",
+                "JustifyCenter",
+                "JustifyRight",
+                "JustifyBlock",
+            ],
+            ["Link", "Unlink"],
+            ["RemoveFormat", "Source"],
+        ],
+    }
+}

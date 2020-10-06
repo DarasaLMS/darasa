@@ -128,13 +128,13 @@ class SchoolAdmin(admin.ModelAdmin):
             {
                 "fields": [
                     "name",
-                    "about",
                     "moto",
                     "logo",
                     "color",
                     "phone",
                     "email",
                     "support_email",
+                    "about",
                     "terms_and_privacy",
                     "enroll_mode",
                     "allow_teacher_verification",

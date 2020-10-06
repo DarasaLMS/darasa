@@ -22,10 +22,12 @@ daphne==2.5.0
 dj-email-url==1.0.1
 Django==3.0.8
 django-celery-beat==2.0.0
+django-ckeditor==6.0.0
 django-cors-headers==3.4.0
 django-countries==6.1.2
 django-filter==2.3.0
 django-fontawesome-5==1.0.18
+django-js-asset==1.2.2
 django-money==1.1
 django-phonenumber-field==4.0.0
 django-timezone-field==4.0

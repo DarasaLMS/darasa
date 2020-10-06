@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from django.utils.translation import ugettext_lazy as _
 from django.apps import apps
 from sorl.thumbnail import ImageField
+from ckeditor.fields import RichTextField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
 from apps.timetable.models import Calendar
@@ -256,14 +257,14 @@ class School(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
-    about = models.TextField(blank=True)
     moto = models.CharField(max_length=256)
     logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
     color = models.CharField(_("color"), blank=True, max_length=10)
     phone = PhoneNumberField(_("phone number"), blank=True, null=True)
     email = models.EmailField(_("email address"), blank=True, null=True)
     support_email = models.EmailField(_("support email address"), blank=True, null=True)
-    terms_and_privacy = models.TextField(blank=True)
+    about = RichTextField(blank=True)
+    terms_and_privacy = RichTextField(blank=True)
     enroll_mode = models.CharField(
         _("course enroll mode"),
         max_length=32,
