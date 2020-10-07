@@ -74,7 +74,7 @@ def create_user_view(request, *args, **kwargs):
 
         user.first_name = first_name
         user.last_name = last_name
-        user.password = password
+        user.set_password(password)
         user.role = role
         user.accepted_terms = accept_terms == "true"
         user.certificate = certificate
