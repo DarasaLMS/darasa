@@ -159,9 +159,9 @@ class MiniUserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret["title"] = ret["title"].title()
-        ret["first_name"] = ret["first_name"].title()
-        ret["last_name"] = ret["last_name"].title()
+        ret["title"] = ret["title"].title() if ret["title"] else ""
+        ret["first_name"] = ret["first_name"].title() if ret["first_name"] else ""
+        ret["last_name"] = ret["last_name"].title() if ret["last_name"] else ""
         return ret
 
 
