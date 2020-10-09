@@ -90,6 +90,7 @@ def create_user_view(request, *args, **kwargs):
         edu_stage = EducationalStage.objects.filter(id=edu_stage_id).first()
         if edu_stage:
             user.student.educational_stage = edu_stage
+            user.student.save()
 
         user.save()
         return Response(UserSerializer(instance=user).data)

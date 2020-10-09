@@ -287,7 +287,9 @@ class EducationalStage(models.Model):
 
 
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name="student"
+    )
     educational_stage = models.ForeignKey(
         EducationalStage, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -313,7 +315,9 @@ class Student(models.Model):
 
 
 class Teacher(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name="teacher"
+    )
     bio = models.TextField(blank=True)
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
