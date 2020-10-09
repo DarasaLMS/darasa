@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Avg
 from django.conf import settings
 from django.core import validators
+from django.core.exceptions import ValidationError
 from django.utils.crypto import get_random_string
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -248,6 +249,11 @@ class PasswordResetToken(models.Model):
 
 
 class School(models.Model):
+    """
+    School represents the primary model that all user entities are related to.
+    Note: There can only be one School instance.
+    """
+
     ENROLL_ALL = "enroll_all"
     CHOOSE_TO_ENROLL = "choose_to_enroll"
     COURSE_ENROLL_MODES = (
@@ -257,14 +263,16 @@ class School(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=256)
-    moto = models.CharField(max_length=256)
+    moto = models.CharField(max_length=256, blank=True)
     logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
-    color = models.CharField(_("color"), blank=True, max_length=10)
+    primary_color = models.CharField(_("primary color"), blank=True, max_length=10)
+    secondary_color = models.CharField(_("secondary color"), blank=True, max_length=10)
     phone = PhoneNumberField(_("phone number"), blank=True, null=True)
     email = models.EmailField(_("email address"), blank=True, null=True)
     support_email = models.EmailField(_("support email address"), blank=True, null=True)
     about = RichTextField(blank=True)
     terms_and_privacy = RichTextField(blank=True)
+    footer_text = models.CharField(max_length=256, blank=True)
     enroll_mode = models.CharField(
         _("course enroll mode"),
         max_length=32,
@@ -275,6 +283,12 @@ class School(models.Model):
 
     def __str__(self):
         return "{}".format(self.name)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and School.objects.exists():
+            raise ValidationError("There is can be only one School instance")
+
+        return super(School, self).save(*args, **kwargs)
 
 
 class EducationalStage(models.Model):
@@ -318,6 +332,7 @@ class Teacher(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name="teacher"
     )
+    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
     bio = models.TextField(blank=True)
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(

@@ -92,6 +92,10 @@ def create_user_view(request, *args, **kwargs):
             user.student.educational_stage = edu_stage
             user.student.save()
 
+        if role == "teacher":
+            user.teacher.school = School.objects.first()
+            user.teacher.save()
+
         user.save()
         return Response(UserSerializer(instance=user).data)
 

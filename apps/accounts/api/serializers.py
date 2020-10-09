@@ -15,7 +15,15 @@ class SchoolSerializer(serializers.ModelSerializer):
 class MiniSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
-        fields = ["id", "name", "logo", "color"]
+        fields = [
+            "id",
+            "name",
+            "logo",
+            "moto",
+            "primary_color",
+            "secondary_color",
+            "footer_text",
+        ]
 
 
 class EducationalStageSerializer(serializers.ModelSerializer):
@@ -37,7 +45,7 @@ class MiniStudentSerializer(serializers.ModelSerializer):
 class MiniTeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ["bio"]
+        fields = ["bio", "school"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -192,7 +200,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
-        fields = ["user", "bio", "verified", "verification_file"]
+        fields = ["user", "school", "bio", "verified", "verification_file"]
         read_only_fields = ["verified", "verification_file"]
 
 

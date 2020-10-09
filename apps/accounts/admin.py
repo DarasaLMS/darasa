@@ -114,7 +114,8 @@ class SchoolAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "logo",
-        "color",
+        "primary_color",
+        "secondary_color",
         "phone",
         "email",
         "support_email",
@@ -130,7 +131,8 @@ class SchoolAdmin(admin.ModelAdmin):
                     "name",
                     "moto",
                     "logo",
-                    "color",
+                    "primary_color",
+                    "secondary_color",
                     "phone",
                     "email",
                     "support_email",
@@ -138,6 +140,7 @@ class SchoolAdmin(admin.ModelAdmin):
                     "terms_and_privacy",
                     "enroll_mode",
                     "allow_teacher_verification",
+                    "footer_text",
                 ]
             },
         ),
