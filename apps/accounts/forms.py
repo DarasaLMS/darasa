@@ -73,7 +73,7 @@ class SchoolAdminForm(forms.ModelForm):
     class Meta:
         exclude = []
         model = School
-        widgets = {"color": ColorInput}
+        widgets = {"primary_color": ColorInput, "secondary_color": ColorInput}
 
 
 class GroupAdminForm(forms.ModelForm):

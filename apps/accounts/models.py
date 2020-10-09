@@ -250,8 +250,7 @@ class PasswordResetToken(models.Model):
 
 class School(models.Model):
     """
-    School represents the primary model that all user entities are related to.
-    Note: There can only be one School instance.
+    This is a singleton model that can only hold one record of a School at a time.
     """
 
     ENROLL_ALL = "enroll_all"
@@ -284,11 +283,11 @@ class School(models.Model):
     def __str__(self):
         return "{}".format(self.name)
 
-    def save(self, *args, **kwargs):
-        if not self.pk and School.objects.exists():
-            raise ValidationError("There is can be only one School instance")
 
-        return super(School, self).save(*args, **kwargs)
+@receiver(pre_save, sender=School)
+def pre_save_school(sender, instance, **kwargs):
+    if School.objects.exclude(pk=instance.pk).exists():
+        raise ValidationError("You can only have one school")
 
 
 class EducationalStage(models.Model):

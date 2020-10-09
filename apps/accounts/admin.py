@@ -146,3 +146,11 @@ class SchoolAdmin(admin.ModelAdmin):
         ),
     )
     form = SchoolAdminForm
+
+    def has_add_permission(self, request):
+        """Disable add school functionality if school instance exists."""
+        result = super().has_add_permission(request)
+        if result and Student.objects.exists():
+            result = False
+
+        return result
