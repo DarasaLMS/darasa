@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, viewsets, generics, mixins
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.accounts.api.serializers import StudentPictureSerializer
-from apps.classrooms.models import Classroom
+from apps.schools.models import Classroom
 from ..models import Calendar, Event, Occurrence, Rule
 from .serializers import EventSerializer, RuleSerializer
 
