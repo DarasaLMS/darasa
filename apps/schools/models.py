@@ -58,8 +58,6 @@ class School(models.Model):
     name = models.CharField(max_length=256)
     moto = models.CharField(max_length=256, blank=True)
     logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
-    primary_color = models.CharField(_("primary color"), blank=True, max_length=10)
-    secondary_color = models.CharField(_("secondary color"), blank=True, max_length=10)
     phone = PhoneNumberField(_("phone number"), blank=True, null=True)
     email = models.EmailField(_("email address"), blank=True, null=True)
     support_email = models.EmailField(_("support email address"), blank=True, null=True)

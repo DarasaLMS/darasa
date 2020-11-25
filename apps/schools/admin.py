@@ -10,7 +10,6 @@ from .models import (
     Classroom,
     Request,
 )
-from .forms import SchoolAdminForm
 
 
 @admin.register(School)
@@ -18,8 +17,6 @@ class SchoolAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "logo",
-        "primary_color",
-        "secondary_color",
         "phone",
         "email",
         "support_email",
@@ -35,8 +32,6 @@ class SchoolAdmin(admin.ModelAdmin):
                     "name",
                     "moto",
                     "logo",
-                    "primary_color",
-                    "secondary_color",
                     "phone",
                     "email",
                     "support_email",
@@ -49,7 +44,6 @@ class SchoolAdmin(admin.ModelAdmin):
             },
         ),
     )
-    form = SchoolAdminForm
 
     def has_add_permission(self, request):
         """Disable add school functionality if school instance exists."""

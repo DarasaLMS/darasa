@@ -23,15 +23,7 @@ class SchoolSerializer(serializers.ModelSerializer):
 class MiniSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
-        fields = [
-            "id",
-            "name",
-            "logo",
-            "moto",
-            "primary_color",
-            "secondary_color",
-            "footer_text",
-        ]
+        fields = ["id", "name", "logo", "moto", "footer_text"]
 
 
 class LevelSerializer(serializers.ModelSerializer):
