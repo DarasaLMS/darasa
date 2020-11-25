@@ -8,7 +8,3 @@ class ImageUploaderWidget(forms.ClearableFileInput):
     class Media:
         css = {"all": ("/static/css/avatar.css",)}
         js = ("/static/js/avatar.js",)
-
-
-class ColorInput(Input):
-    input_type = "color"

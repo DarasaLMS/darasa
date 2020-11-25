@@ -1,7 +1,6 @@
 from django.conf import settings
 from rest_framework import serializers
 from apps.timetable.api.serializers import EventSerializer
-from apps.accounts.api.serializers import MiniUserSerializer
 from ..models import (
     School,
     Level,
@@ -58,6 +57,8 @@ class MiniTeacherSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
+    from apps.accounts.api.serializers import MiniUserSerializer
+
     user = MiniUserSerializer(many=False, read_only=True)
     level = LevelSerializer(many=False, read_only=True)
 
@@ -80,6 +81,8 @@ class StudentPictureSerializer(serializers.ModelSerializer):
 
 
 class TeacherSerializer(serializers.ModelSerializer):
+    from apps.accounts.api.serializers import MiniUserSerializer
+
     user = MiniUserSerializer(many=False, read_only=True)
 
     class Meta:
