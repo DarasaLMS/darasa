@@ -14,18 +14,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, filters, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
-from ..models import (
-    User,
-    VerificationToken,
-    PasswordResetToken,
-    EducationalStage,
-    School,
-)
+from ..models import User, VerificationToken, PasswordResetToken, Level, School
 from .serializers import (
     LoginSerializer,
     UserSerializer,
     PasswordResetRequestSerializer,
-    EducationalStageSerializer,
+    LevelSerializer,
     SchoolSerializer,
 )
 
@@ -71,7 +65,7 @@ def create_user_view(request, *args, **kwargs):
     role = request.data.get("role", None)
     accept_terms = request.data.get("accept_terms", False)
     certificate = request.data.get("certificate", None)
-    edu_stage_id = request.data.get("educational_stage", None)
+    level_id = request.data.get("level", None)
 
     try:
         user, user_created = User.objects.get_or_create(email=email)
@@ -87,9 +81,9 @@ def create_user_view(request, *args, **kwargs):
         user.accepted_terms = accept_terms == "true"
         user.certificate = certificate
         user.title = title
-        edu_stage = EducationalStage.objects.filter(id=edu_stage_id).first()
-        if edu_stage:
-            user.student.educational_stage = edu_stage
+        level = Level.objects.filter(id=level_id).first()
+        if level:
+            user.student.level = level
             user.student.save()
 
         if role == "teacher":
@@ -179,23 +173,23 @@ def reset_password(request, **kwargs):
     return Response({"success": True})
 
 
-class EducationalStageListAPIView(ListAPIView):
-    queryset = EducationalStage.objects.all()
-    serializer_class = EducationalStageSerializer
+class LevelListAPIView(ListAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
     permission_classes = [permissions.AllowAny]
 
 
-class EducationalStageCreateAPIView(CreateAPIView):
-    queryset = EducationalStage.objects.all()
-    serializer_class = EducationalStageSerializer
+class LevelCreateAPIView(CreateAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
-class EducationalStageRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = EducationalStage.objects.all()
-    serializer_class = EducationalStageSerializer
+class LevelRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = "stage_id"
+    lookup_url_kwarg = "level_id"
 
 
 class SchoolListAPIView(ListAPIView):

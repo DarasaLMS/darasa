@@ -7,9 +7,9 @@ from .views import (
     verify_account,
     reset_password,
     request_password_reset,
-    EducationalStageCreateAPIView,
-    EducationalStageListAPIView,
-    EducationalStageRetrieveUpdateDestroyAPIView,
+    LevelCreateAPIView,
+    LevelListAPIView,
+    LevelRetrieveUpdateDestroyAPIView,
     SchoolCreateAPIView,
     SchoolListAPIView,
     SchoolRetrieveUpdateAPIView,
@@ -32,19 +32,13 @@ urlpatterns = [
         name="request_password_reset",
     ),
     re_path(
-        r"^educational-stages/create/$",
-        EducationalStageCreateAPIView.as_view(),
-        name="educational_stages_create_view",
+        r"^levels/create/$", LevelCreateAPIView.as_view(), name="levels_create_view"
     ),
+    re_path(r"^levels/$", LevelListAPIView.as_view(), name="levels_list_view"),
     re_path(
-        r"^educational-stages/$",
-        EducationalStageListAPIView.as_view(),
-        name="educational_stages_list_view",
-    ),
-    re_path(
-        r"^educational-stages/(?P<stage_id>.+)/$$",
-        EducationalStageRetrieveUpdateDestroyAPIView.as_view(),
-        name="educational_stages_view",
+        r"^levels/(?P<level_id>.+)/$$",
+        LevelRetrieveUpdateDestroyAPIView.as_view(),
+        name="levels_view",
     ),
     re_path(
         r"^schools/create$", SchoolCreateAPIView.as_view(), name="school_create_view"

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
-from ..models import User, Student, Teacher, EducationalStage, School
+from ..models import User, Student, Teacher, Level, School
 
 
 class SchoolSerializer(serializers.ModelSerializer):
@@ -26,20 +26,20 @@ class MiniSchoolSerializer(serializers.ModelSerializer):
         ]
 
 
-class EducationalStageSerializer(serializers.ModelSerializer):
+class LevelSerializer(serializers.ModelSerializer):
     school = MiniSchoolSerializer(many=False, read_only=True)
 
     class Meta:
-        model = EducationalStage
+        model = Level
         fields = ["id", "name", "description", "school"]
 
 
 class MiniStudentSerializer(serializers.ModelSerializer):
-    educational_stage = EducationalStageSerializer(many=False, read_only=True)
+    level = LevelSerializer(many=False, read_only=True)
 
     class Meta:
         model = Student
-        fields = ["educational_stage"]
+        fields = ["level"]
 
 
 class MiniTeacherSerializer(serializers.ModelSerializer):
@@ -175,11 +175,11 @@ class MiniUserSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     user = MiniUserSerializer(many=False, read_only=True)
-    educational_stage = EducationalStageSerializer(many=False, read_only=True)
+    level = LevelSerializer(many=False, read_only=True)
 
     class Meta:
         model = Student
-        fields = ["user", "educational_stage"]
+        fields = ["user", "level"]
 
 
 class StudentPictureSerializer(serializers.ModelSerializer):
@@ -188,7 +188,7 @@ class StudentPictureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = ["user", "educational_stage", "picture_url"]
+        fields = ["user", "level", "picture_url"]
 
     def get_picture_url(self, obj):
         request = self.context.get("request")

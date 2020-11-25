@@ -19,7 +19,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
-from apps.accounts.models import User, EducationalStage, Teacher
+from apps.accounts.models import User, Level, Teacher
 from apps.timetable.models import Event, Rule
 from ..models import Course, Lesson, Post, Classroom, Request
 from .serializers import (
@@ -36,7 +36,7 @@ class CoursesView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ["name"]
-    filterset_fields = ["educational_stages"]
+    filterset_fields = ["levels"]
 
     def get_queryset(self):
         queryset = Course.objects.all().order_by("date_modified")
@@ -63,7 +63,7 @@ class CoursesView(generics.ListAPIView):
         properties={
             "name": openapi.Schema(type=openapi.TYPE_STRING),
             "description": openapi.Schema(type=openapi.TYPE_STRING),
-            "educational_stages": openapi.Schema(
+            "levels": openapi.Schema(
                 type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING)
             ),
             "classroom_join_mode": openapi.Schema(type=openapi.TYPE_STRING),
@@ -79,7 +79,7 @@ class CoursesView(generics.ListAPIView):
 def create_course_view(request, *args, **kwargs):
     name = request.data.get("name", None)
     description = request.data.get("description", None)
-    educational_stages = request.data.get("educational_stages", "")
+    levels = request.data.get("levels", "")
     classroom_join_mode = request.data.get("classroom_join_mode", None)
     cover = request.data.get("cover", None)
     teacher_user_id = request.data.get("teacher", None)
@@ -101,10 +101,10 @@ def create_course_view(request, *args, **kwargs):
         course.cover = cover
         course.save()
 
-        for stage_id in educational_stages.split(","):
-            stage = get_object_or_404(EducationalStage.objects.all(), id=stage_id)
-            if stage not in course.educational_stages.all():
-                course.educational_stages.add(stage)
+        for level_id in levels.split(","):
+            level = get_object_or_404(Level.objects.all(), id=level_id)
+            if level not in course.levels.all():
+                course.levels.add(level)
 
         for ateacher_user_id in assistant_teachers.split(","):
             assitant_teacher = get_object_or_404(

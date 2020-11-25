@@ -35,7 +35,7 @@ class CourseAdmin(admin.ModelAdmin):
                     "teacher",
                     "assistant_teachers",
                     "students",
-                    "educational_stages",
+                    "levels",
                     "classroom_join_mode",
                 )
             },

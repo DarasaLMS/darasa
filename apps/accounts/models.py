@@ -256,7 +256,7 @@ class School(models.Model):
     ENROLL_ALL = "enroll_all"
     CHOOSE_TO_ENROLL = "choose_to_enroll"
     COURSE_ENROLL_MODES = (
-        (ENROLL_ALL, _("Enroll to all courses per student's educational stage")),
+        (ENROLL_ALL, _("Enroll to all courses per student's level")),
         (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
     )
 
@@ -290,7 +290,7 @@ def pre_save_school(sender, instance, **kwargs):
         raise ValidationError("You can only have one school")
 
 
-class EducationalStage(models.Model):
+class Level(models.Model):
     school = models.ForeignKey(School, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=256)
     description = models.TextField(blank=True)
@@ -303,9 +303,7 @@ class Student(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name="student"
     )
-    educational_stage = models.ForeignKey(
-        EducationalStage, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return "{} {}".format(self.user.first_name, self.user.last_name)

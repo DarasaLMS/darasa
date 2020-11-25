@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.template.loader import render_to_string
 from django.contrib.auth.models import Group
-from .models import User, Student, Teacher, EducationalStage, School
+from .models import User, Student, Teacher, Level, School
 from .forms import UserAddForm, UserChangeForm, SchoolAdminForm, GroupAdminForm
 
 
@@ -94,14 +94,14 @@ class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ["permissions"]
 
 
-@admin.register(EducationalStage)
-class EducationalStageAdmin(admin.ModelAdmin):
+@admin.register(Level)
+class LevelAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
 
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ("user", "educational_stage")
+    list_display = ("user", "level")
 
 
 @admin.register(Teacher)

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.accounts.api.serializers import (
     StudentSerializer,
     TeacherSerializer,
-    EducationalStageSerializer,
+    LevelSerializer,
 )
 from apps.timetable.api.serializers import EventSerializer
 from ..models import Course, Lesson, Post, Classroom, Request
@@ -82,7 +82,7 @@ class CourseClassroomSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     teacher = TeacherSerializer(many=False, required=True)
     assistant_teachers = TeacherSerializer(many=True, required=False)
-    educational_stages = EducationalStageSerializer(many=True, required=False)
+    levels = LevelSerializer(many=True, required=False)
     students = StudentSerializer(many=True, required=False)
     lessons = LessonSerializer(many=True, required=False)
     posts = PostSerializer(many=True, required=False)
@@ -99,7 +99,7 @@ class CourseSerializer(serializers.ModelSerializer):
             "cover",
             "teacher",
             "assistant_teachers",
-            "educational_stages",
+            "levels",
             "students",
             "lessons",
             "posts",

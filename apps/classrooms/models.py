@@ -19,7 +19,7 @@ from apps.core.bbb import (
     get_meeting_info,
     end_meeting,
 )
-from apps.accounts.models import Student, Teacher, EducationalStage
+from apps.accounts.models import Student, Teacher, Level
 from .utils import get_random_password
 
 REQUEST_ACCEPTED_TXT = get_template("emails/request_accepted.txt")
@@ -61,9 +61,7 @@ class Course(BaseModel):
         blank=True,
     )
     students = models.ManyToManyField(Student, verbose_name=_("students"), blank=True)
-    educational_stages = models.ManyToManyField(
-        EducationalStage, verbose_name=_("educational stages"), blank=True
-    )
+    levels = models.ManyToManyField(Level, verbose_name=_("levels"), blank=True)
     classroom_join_mode = models.CharField(
         _("classroom join mode"),
         max_length=32,
