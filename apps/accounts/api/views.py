@@ -14,14 +14,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, filters, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
-from ..models import User, VerificationToken, PasswordResetToken, Level, School
-from .serializers import (
-    LoginSerializer,
-    UserSerializer,
-    PasswordResetRequestSerializer,
-    LevelSerializer,
-    SchoolSerializer,
-)
+from apps.schools.models import School, Level
+from ..models import User, VerificationToken, PasswordResetToken
+from .serializers import LoginSerializer, UserSerializer, PasswordResetRequestSerializer
 
 
 class LoginView(TokenObtainPairView):
@@ -171,41 +166,3 @@ def reset_password(request, **kwargs):
     # delete verification token after usage
     verification_token.delete()
     return Response({"success": True})
-
-
-class LevelListAPIView(ListAPIView):
-    queryset = Level.objects.all()
-    serializer_class = LevelSerializer
-    permission_classes = [permissions.AllowAny]
-
-
-class LevelCreateAPIView(CreateAPIView):
-    queryset = Level.objects.all()
-    serializer_class = LevelSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class LevelRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Level.objects.all()
-    serializer_class = LevelSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = "level_id"
-
-
-class SchoolListAPIView(ListAPIView):
-    queryset = School.objects.all()
-    serializer_class = SchoolSerializer
-    permission_classes = [permissions.AllowAny]
-
-
-class SchoolCreateAPIView(CreateAPIView):
-    queryset = School.objects.all()
-    serializer_class = SchoolSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class SchoolRetrieveUpdateAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = School.objects.all()
-    serializer_class = SchoolSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = "school_id"

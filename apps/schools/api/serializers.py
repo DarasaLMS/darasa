@@ -1,12 +1,91 @@
 from django.conf import settings
 from rest_framework import serializers
-from apps.accounts.api.serializers import (
-    StudentSerializer,
-    TeacherSerializer,
-    LevelSerializer,
-)
 from apps.timetable.api.serializers import EventSerializer
-from ..models import Course, Lesson, Post, Classroom, Request
+from apps.accounts.api.serializers import MiniUserSerializer
+from ..models import (
+    School,
+    Level,
+    Student,
+    Teacher,
+    Course,
+    Lesson,
+    Post,
+    Classroom,
+    Request,
+)
+
+
+class SchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = School
+        fields = "__all__"
+
+
+class MiniSchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = School
+        fields = [
+            "id",
+            "name",
+            "logo",
+            "moto",
+            "primary_color",
+            "secondary_color",
+            "footer_text",
+        ]
+
+
+class LevelSerializer(serializers.ModelSerializer):
+    school = MiniSchoolSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Level
+        fields = ["id", "name", "description", "school"]
+
+
+class MiniStudentSerializer(serializers.ModelSerializer):
+    level = LevelSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Student
+        fields = ["level"]
+
+
+class MiniTeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ["bio", "school"]
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer(many=False, read_only=True)
+    level = LevelSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Student
+        fields = ["user", "level"]
+
+
+class StudentPictureSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    picture_url = serializers.SerializerMethodField("get_picture_url")
+
+    class Meta:
+        model = Student
+        fields = ["user", "level", "picture_url"]
+
+    def get_picture_url(self, obj):
+        request = self.context.get("request")
+        return request.build_absolute_uri(obj.user.picture.url)
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Teacher
+        fields = ["user", "school", "bio", "verified", "verification_file"]
+        read_only_fields = ["verified", "verification_file"]
 
 
 class RecursiveField(serializers.Serializer):

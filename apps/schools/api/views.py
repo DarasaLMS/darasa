@@ -16,19 +16,68 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from apps.accounts.models import Student
 from apps.core.permissions import IsOwnerOrReadOnly
 from apps.core.validators import is_valid_uuid
-from apps.accounts.models import User, Level, Teacher
+from apps.accounts.models import User
 from apps.timetable.models import Event, Rule
-from ..models import Course, Lesson, Post, Classroom, Request
+from ..models import (
+    School,
+    Level,
+    Student,
+    Teacher,
+    Course,
+    Lesson,
+    Post,
+    Classroom,
+    Request,
+)
 from .serializers import (
+    SchoolSerializer,
+    LevelSerializer,
     CourseSerializer,
     ClassroomSerializer,
     RequestSerializer,
     LessonSerializer,
     PostSerializer,
 )
+
+
+class SchoolListAPIView(generics.ListAPIView):
+    queryset = School.objects.all()
+    serializer_class = SchoolSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class SchoolCreateAPIView(generics.CreateAPIView):
+    queryset = School.objects.all()
+    serializer_class = SchoolSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class SchoolRetrieveUpdateAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = School.objects.all()
+    serializer_class = SchoolSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "school_id"
+
+
+class LevelListAPIView(generics.ListAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class LevelCreateAPIView(generics.CreateAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class LevelRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "level_id"
 
 
 class CoursesView(generics.ListAPIView):

@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.template.loader import render_to_string
 from django.contrib.auth.models import Group
-from .models import User, Student, Teacher, Level, School
-from .forms import UserAddForm, UserChangeForm, SchoolAdminForm, GroupAdminForm
+from apps.schools.models import Student, Teacher
+from .models import User
+from .forms import UserAddForm, UserChangeForm, GroupAdminForm
 
 
 class StudentInline(admin.TabularInline):
@@ -80,7 +81,7 @@ class UserAdmin(UserAdmin):
     inlines = [StudentInline, TeacherInline]
 
     def render_picture(self, obj):
-        return render_to_string("picture.html", {"picture": obj.picture})
+        return render_to_string("widgets/picture.html", {"picture": obj.picture})
 
     render_picture.short_description = "Picture"
 
@@ -92,65 +93,3 @@ admin.site.unregister(Group)
 class GroupAdmin(admin.ModelAdmin):
     form = GroupAdminForm
     filter_horizontal = ["permissions"]
-
-
-@admin.register(Level)
-class LevelAdmin(admin.ModelAdmin):
-    list_display = ("name", "description")
-
-
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display = ("user", "level")
-
-
-@admin.register(Teacher)
-class TeacherAdmin(admin.ModelAdmin):
-    list_display = ("user", "bio", "verified", "verification_file")
-
-
-@admin.register(School)
-class SchoolAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "logo",
-        "primary_color",
-        "secondary_color",
-        "phone",
-        "email",
-        "support_email",
-        "enroll_mode",
-        "allow_teacher_verification",
-    )
-
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": [
-                    "name",
-                    "moto",
-                    "logo",
-                    "primary_color",
-                    "secondary_color",
-                    "phone",
-                    "email",
-                    "support_email",
-                    "about",
-                    "terms_and_privacy",
-                    "enroll_mode",
-                    "allow_teacher_verification",
-                    "footer_text",
-                ]
-            },
-        ),
-    )
-    form = SchoolAdminForm
-
-    def has_add_permission(self, request):
-        """Disable add school functionality if school instance exists."""
-        result = super().has_add_permission(request)
-        if result and Student.objects.exists():
-            result = False
-
-        return result

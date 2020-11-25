@@ -3,8 +3,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from .models import User, School
-from .widgets import ImageUploaderWidget, ColorInput
+from .models import User
+from .widgets import ImageUploaderWidget
 
 
 class UserAddForm(forms.ModelForm):
@@ -67,13 +67,6 @@ class UserChangeForm(forms.ModelForm):
 
     def clean_password(self):
         return self.initial["password"]
-
-
-class SchoolAdminForm(forms.ModelForm):
-    class Meta:
-        exclude = []
-        model = School
-        widgets = {"primary_color": ColorInput, "secondary_color": ColorInput}
 
 
 class GroupAdminForm(forms.ModelForm):
