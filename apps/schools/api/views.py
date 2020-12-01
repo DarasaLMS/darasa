@@ -151,16 +151,22 @@ def create_course_view(request, *args, **kwargs):
         course.save()
 
         for level_id in levels.split(","):
+            if not level_id:
+                continue
+
             level = get_object_or_404(Level.objects.all(), id=level_id)
             if level not in course.levels.all():
                 course.levels.add(level)
 
         for ateacher_user_id in assistant_teachers.split(","):
-            assitant_teacher = get_object_or_404(
+            if not ateacher_user_id:
+                continue
+
+            assistant_teacher = get_object_or_404(
                 Teacher.objects.all(), user__id=ateacher_user_id
             )
-            if assitant_teacher not in course.assistant_teachers.all():
-                course.assistant_teachers.add(assitant_teacher)
+            if assistant_teacher not in course.assistant_teachers.all():
+                course.assistant_teachers.add(assistant_teacher)
 
         return Response(CourseSerializer(instance=course).data)
 
