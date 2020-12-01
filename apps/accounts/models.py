@@ -16,7 +16,6 @@ from django.db.models.signals import post_save, pre_save
 from sorl.thumbnail import ImageField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
-from apps.timetable.models import Calendar
 
 EMAIL_VERIFICATION_TXT = get_template("emails/email_verification.txt")
 EMAIL_VERIFICATION_HTML = get_template("emails/email_verification.html")
@@ -106,7 +105,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         upload_to="pictures/%Y/%m", default="pictures/default/user.png"
     )
     calendar = models.OneToOneField(
-        Calendar, on_delete=models.SET_NULL, null=True, blank=True
+        "timetable.Calendar", on_delete=models.SET_NULL, null=True, blank=True
     )
     accepted_terms = models.BooleanField(
         _("accepted terms and conditions"), default=False
@@ -198,11 +197,11 @@ def pre_save_user(sender, instance, **kwargs):
 def post_save_user(sender, instance, created, **kwargs):
     if created:
         if instance.role == User.STUDENT:
-            student_model = apps.get_model("accounts", "student")
+            student_model = apps.get_model("schools", "student")
             student_model.objects.get_or_create(user=instance)
 
         elif instance.role == User.TEACHER:
-            teacher_model = apps.get_model("accounts", "teacher")
+            teacher_model = apps.get_model("schools", "teacher")
             teacher_model.objects.get_or_create(user=instance)
 
         # Send account verification email
@@ -210,7 +209,8 @@ def post_save_user(sender, instance, created, **kwargs):
 
     if not instance.calendar:
         # Create a user's calendar
-        calendar = Calendar.objects.get_or_create_calendar_for_object(
+        calendar_model = apps.get_model("timetable", "calendar")
+        calendar = calendar_model.objects.get_or_create_calendar_for_object(
             instance, name="{}'s Calendar".format(instance.first_name)
         )
         instance.calendar = calendar
