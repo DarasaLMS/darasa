@@ -68,6 +68,12 @@ Run your server
 python manage.py runserver
 ```
 
+And run your celery workers
+
+```{bash}
+celery -A darasa.celery worker -l info
+```
+
 That's it!
 
 Go to http://localhost:8000/admin

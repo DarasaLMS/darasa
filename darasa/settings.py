@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     "ckeditor",
     "apps.core",
     "apps.accounts",
-    "apps.classrooms",
+    "apps.schools",
     "apps.feedback",
     "apps.payments",
     "apps.timetable",

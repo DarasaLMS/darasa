@@ -2,14 +2,19 @@ import time
 import uuid
 import string
 import random
-from django.conf import settings
-from django.dispatch import receiver
+import logging
 from django.db import models
-from django.db.models.signals import post_save, pre_save
+from django.conf import settings
+from django.db.models import Avg
 from django.utils import timezone
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save, pre_save
 from django.utils.translation import ugettext_lazy as _
 from django.template.loader import get_template
 from sorl.thumbnail import ImageField
+from ckeditor.fields import RichTextField
+from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.models import BaseModel
 from apps.core.tasks import send_email
 from apps.core.bbb import (
@@ -19,8 +24,10 @@ from apps.core.bbb import (
     get_meeting_info,
     end_meeting,
 )
-from apps.accounts.models import Student, Teacher, EducationalStage
+from apps.accounts.models import User
 from .utils import get_random_password
+
+logger = logging.getLogger(__name__)
 
 REQUEST_ACCEPTED_TXT = get_template("emails/request_accepted.txt")
 REQUEST_ACCEPTED_HTML = get_template("emails/request_accepted.html")
@@ -30,6 +37,169 @@ REQUEST_DECLINED_HTML = get_template("emails/request_declined.html")
 
 REQUEST_SUSPENDED_TXT = get_template("emails/request_suspended.txt")
 REQUEST_SUSPENDED_HTML = get_template("emails/request_suspended.html")
+
+TEACHER_VERIFICATION_TXT = get_template("emails/teacher_verification.txt")
+TEACHER_VERIFICATION_HTML = get_template("emails/teacher_verification.html")
+
+
+class School(models.Model):
+    """
+    This is a singleton model that can only hold one record of a School at a time.
+    """
+
+    ENROLL_ALL = "enroll_all"
+    CHOOSE_TO_ENROLL = "choose_to_enroll"
+    COURSE_ENROLL_MODES = (
+        (ENROLL_ALL, _("Enroll to all courses per student's level")),
+        (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=256)
+    moto = models.CharField(max_length=256, blank=True)
+    logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
+    phone = PhoneNumberField(_("phone number"), blank=True, null=True)
+    email = models.EmailField(_("email address"), blank=True, null=True)
+    support_email = models.EmailField(_("support email address"), blank=True, null=True)
+    about = RichTextField(blank=True)
+    terms_and_privacy = RichTextField(blank=True)
+    footer_text = models.CharField(max_length=256, blank=True)
+    enroll_mode = models.CharField(
+        _("course enroll mode"),
+        max_length=32,
+        choices=COURSE_ENROLL_MODES,
+        default=ENROLL_ALL,
+    )
+    allow_teacher_verification = models.BooleanField(default=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+
+@receiver(pre_save, sender=School)
+def pre_save_school(sender, instance, **kwargs):
+    if School.objects.exclude(pk=instance.pk).exists():
+        raise ValidationError("You can only have one school")
+
+
+class Level(models.Model):
+    school = models.ForeignKey(School, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=256)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
+
+class Student(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name="student"
+    )
+    level = models.ForeignKey(Level, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return "{} {}".format(self.user.first_name, self.user.last_name)
+
+    @property
+    def active_classes(self):
+        return self.classroom_set.all()
+
+    @property
+    def pending_requests(self):
+        return self.request_set.all().filter(status="pending")
+
+    @property
+    def approved_requests(self):
+        return self.request_set.all().filter(status="approved")
+
+    @property
+    def rejected_requests(self):
+        return self.request_set.all().filter(status="rejected")
+
+
+class Teacher(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name="teacher"
+    )
+    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
+    bio = models.TextField(blank=True)
+    verified = models.BooleanField(default=False)
+    verification_file = models.FileField(
+        upload_to="verifications/%Y/%m", null=True, blank=True
+    )
+
+    _was_verified = None
+
+    def __str__(self):
+        return "{} {} {}".format(
+            str(self.user.title or "").title(),
+            str(self.user.first_name or "").title(),
+            str(self.user.last_name or "").title(),
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(Teacher, self).__init__(*args, **kwargs)
+        self._was_verified = self.verified
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if self._was_verified != self.verified:
+            self.send_verified_email()
+
+        return super(Teacher, self).save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
+
+    @property
+    def courses(self):
+        return self.course_set.all()
+
+    @property
+    def classrooms(self):
+        return self.classroom_set.all()
+
+    @property
+    def duration(self):
+        return 0
+
+    @property
+    def feedback(self):
+        return self.feedback_set.all()
+
+    @property
+    def rating(self):
+        return self.feedback.aggregate(Avg("rating"))
+
+    def availability(self, datetime):
+        return not self.classrooms.filter(
+            start_class_at__gte=datetime, finish_class_at__lte=datetime
+        ).exists()
+
+    def send_verified_email(self):
+        subject = "Verification for {}".format(settings.SITE_NAME)
+        to_email = self.user.email
+        data = {
+            "first_name": self.user.first_name,
+            "login_url": settings.HOST,
+            "site_name": settings.SITE_NAME,
+        }
+        text_content = TEACHER_VERIFICATION_TXT.render(data)
+        html_content = TEACHER_VERIFICATION_HTML.render(data)
+        send_email.delay(subject, text_content, to_email, html_content=html_content)
+
+
+@receiver(pre_save, sender=Teacher)
+def delete_document_if_verified(sender, instance, **kwargs):
+    if instance.verified and instance.verification_file:
+        try:
+            instance.verification_file.delete(save=False)
+            instance.verification_file = None
+        except Exception:
+            logger.exception("Exception occured while trying to delete verified file")
 
 
 class Course(BaseModel):
@@ -61,9 +231,7 @@ class Course(BaseModel):
         blank=True,
     )
     students = models.ManyToManyField(Student, verbose_name=_("students"), blank=True)
-    educational_stages = models.ManyToManyField(
-        EducationalStage, verbose_name=_("educational stages"), blank=True
-    )
+    levels = models.ManyToManyField(Level, verbose_name=_("levels"), blank=True)
     classroom_join_mode = models.CharField(
         _("classroom join mode"),
         max_length=32,

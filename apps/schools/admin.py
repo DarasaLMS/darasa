@@ -1,5 +1,72 @@
 from django.contrib import admin
-from .models import Course, Lesson, Post, Classroom, Request
+from .models import (
+    School,
+    Level,
+    Student,
+    Teacher,
+    Course,
+    Lesson,
+    Post,
+    Classroom,
+    Request,
+)
+
+
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "logo",
+        "phone",
+        "email",
+        "support_email",
+        "enroll_mode",
+        "allow_teacher_verification",
+    )
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": [
+                    "name",
+                    "moto",
+                    "logo",
+                    "phone",
+                    "email",
+                    "support_email",
+                    "about",
+                    "terms_and_privacy",
+                    "enroll_mode",
+                    "allow_teacher_verification",
+                    "footer_text",
+                ]
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        """Disable add school functionality if school instance exists."""
+        result = super().has_add_permission(request)
+        if result and Student.objects.exists():
+            result = False
+
+        return result
+
+
+@admin.register(Level)
+class LevelAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ("user", "level")
+
+
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ("user", "bio", "verified", "verification_file")
 
 
 class LessonInline(admin.TabularInline):
@@ -35,7 +102,7 @@ class CourseAdmin(admin.ModelAdmin):
                     "teacher",
                     "assistant_teachers",
                     "students",
-                    "educational_stages",
+                    "levels",
                     "classroom_join_mode",
                 )
             },

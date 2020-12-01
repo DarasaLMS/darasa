@@ -1,36 +1,28 @@
 import uuid
-import logging
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
 from django.db import models
-from django.db.models import Avg
+from django.apps import apps
 from django.conf import settings
 from django.core import validators
-from django.utils.crypto import get_random_string
-from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import get_template
+from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
-from django.apps import apps
+from django.db.models.signals import post_save, pre_save
 from sorl.thumbnail import ImageField
-from ckeditor.fields import RichTextField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
 from apps.timetable.models import Calendar
-
-logger = logging.getLogger(__name__)
 
 EMAIL_VERIFICATION_TXT = get_template("emails/email_verification.txt")
 EMAIL_VERIFICATION_HTML = get_template("emails/email_verification.html")
 
 PASSWORD_RESET_TXT = get_template("emails/password_reset.txt")
 PASSWORD_RESET_HTML = get_template("emails/password_reset.html")
-
-TEACHER_VERIFICATION_TXT = get_template("emails/teacher_verification.txt")
-TEACHER_VERIFICATION_HTML = get_template("emails/teacher_verification.html")
 
 
 def get_unique_random_string(length=32):
@@ -245,150 +237,3 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return "{}".format(self.token)
-
-
-class School(models.Model):
-    ENROLL_ALL = "enroll_all"
-    CHOOSE_TO_ENROLL = "choose_to_enroll"
-    COURSE_ENROLL_MODES = (
-        (ENROLL_ALL, _("Enroll to all courses per student's educational stage")),
-        (CHOOSE_TO_ENROLL, _("Choose to enroll to a course")),
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256)
-    moto = models.CharField(max_length=256)
-    logo = ImageField(upload_to="logos/%Y/%m", default="logos/default/logo.png")
-    color = models.CharField(_("color"), blank=True, max_length=10)
-    phone = PhoneNumberField(_("phone number"), blank=True, null=True)
-    email = models.EmailField(_("email address"), blank=True, null=True)
-    support_email = models.EmailField(_("support email address"), blank=True, null=True)
-    about = RichTextField(blank=True)
-    terms_and_privacy = RichTextField(blank=True)
-    enroll_mode = models.CharField(
-        _("course enroll mode"),
-        max_length=32,
-        choices=COURSE_ENROLL_MODES,
-        default=ENROLL_ALL,
-    )
-    allow_teacher_verification = models.BooleanField(default=True)
-
-    def __str__(self):
-        return "{}".format(self.name)
-
-
-class EducationalStage(models.Model):
-    school = models.ForeignKey(School, on_delete=models.CASCADE, blank=True, null=True)
-    name = models.CharField(max_length=256)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return "{}".format(self.name)
-
-
-class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    educational_stage = models.ForeignKey(
-        EducationalStage, on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-    def __str__(self):
-        return "{} {}".format(self.user.first_name, self.user.last_name)
-
-    @property
-    def active_classes(self):
-        return self.classroom_set.all()
-
-    @property
-    def pending_requests(self):
-        return self.request_set.all().filter(status="pending")
-
-    @property
-    def approved_requests(self):
-        return self.request_set.all().filter(status="approved")
-
-    @property
-    def rejected_requests(self):
-        return self.request_set.all().filter(status="rejected")
-
-
-class Teacher(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    bio = models.TextField(blank=True)
-    verified = models.BooleanField(default=False)
-    verification_file = models.FileField(
-        upload_to="verifications/%Y/%m", null=True, blank=True
-    )
-
-    _was_verified = None
-
-    def __str__(self):
-        return "{} {} {}".format(
-            str(self.user.title or "").title(),
-            str(self.user.first_name or "").title(),
-            str(self.user.last_name or "").title(),
-        )
-
-    def __init__(self, *args, **kwargs):
-        super(Teacher, self).__init__(*args, **kwargs)
-        self._was_verified = self.verified
-
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if self._was_verified != self.verified:
-            self.send_verified_email()
-
-        return super(Teacher, self).save(
-            force_insert=force_insert,
-            force_update=force_update,
-            using=using,
-            update_fields=update_fields,
-        )
-
-    @property
-    def courses(self):
-        return self.course_set.all()
-
-    @property
-    def classrooms(self):
-        return self.classroom_set.all()
-
-    @property
-    def duration(self):
-        return 0
-
-    @property
-    def feedback(self):
-        return self.feedback_set.all()
-
-    @property
-    def rating(self):
-        return self.feedback.aggregate(Avg("rating"))
-
-    def availability(self, datetime):
-        return not self.classrooms.filter(
-            start_class_at__gte=datetime, finish_class_at__lte=datetime
-        ).exists()
-
-    def send_verified_email(self):
-        subject = "Verification for {}".format(settings.SITE_NAME)
-        to_email = self.user.email
-        data = {
-            "first_name": self.user.first_name,
-            "login_url": settings.HOST,
-            "site_name": settings.SITE_NAME,
-        }
-        text_content = TEACHER_VERIFICATION_TXT.render(data)
-        html_content = TEACHER_VERIFICATION_HTML.render(data)
-        send_email.delay(subject, text_content, to_email, html_content=html_content)
-
-
-@receiver(pre_save, sender=Teacher)
-def delete_document_if_verified(sender, instance, **kwargs):
-    if instance.verified and instance.verification_file:
-        try:
-            instance.verification_file.delete(save=False)
-            instance.verification_file = None
-        except Exception:
-            logger.exception("Exception occured while trying to delete verified file")

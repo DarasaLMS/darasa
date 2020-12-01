@@ -2,32 +2,28 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
-from rest_framework.generics import get_object_or_404, ListAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    get_object_or_404,
+    ListAPIView,
+    RetrieveAPIView,
+    CreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import exceptions, permissions, status, filters, viewsets
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
-from ..models import (
-    User,
-    VerificationToken,
-    PasswordResetToken,
-    EducationalStage,
-    School,
-)
-from .serializers import (
-    LoginSerializer,
-    UserSerializer,
-    PasswordResetRequestSerializer,
-    EducationalStageSerializer,
-    SchoolSerializer,
-)
+from apps.schools.models import School, Level
+from ..models import User, VerificationToken, PasswordResetToken
+from .serializers import LoginSerializer, UserSerializer, PasswordResetRequestSerializer
 
 
 class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
 
 
-class UserListView(ListAPIView):
+class UserListAPIView(ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -64,6 +60,7 @@ def create_user_view(request, *args, **kwargs):
     role = request.data.get("role", None)
     accept_terms = request.data.get("accept_terms", False)
     certificate = request.data.get("certificate", None)
+    level_id = request.data.get("level", None)
 
     try:
         user, user_created = User.objects.get_or_create(email=email)
@@ -79,6 +76,15 @@ def create_user_view(request, *args, **kwargs):
         user.accepted_terms = accept_terms == "true"
         user.certificate = certificate
         user.title = title
+        level = Level.objects.filter(id=level_id).first()
+        if level:
+            user.student.level = level
+            user.student.save()
+
+        if role == "teacher":
+            user.teacher.school = School.objects.first()
+            user.teacher.save()
+
         user.save()
         return Response(UserSerializer(instance=user).data)
 
@@ -86,7 +92,7 @@ def create_user_view(request, *args, **kwargs):
         raise exceptions.APIException(error)
 
 
-class UserRetrieveView(RetrieveAPIView):
+class UserRetrieveAPIView(RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -160,15 +166,3 @@ def reset_password(request, **kwargs):
     # delete verification token after usage
     verification_token.delete()
     return Response({"success": True})
-
-
-class EducationalStageViewset(viewsets.ModelViewSet):
-    queryset = EducationalStage.objects.all()
-    serializer_class = EducationalStageSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class SchoolViewset(viewsets.ModelViewSet):
-    queryset = School.objects.all()
-    serializer_class = SchoolSerializer
-    permission_classes = [permissions.AllowAny]

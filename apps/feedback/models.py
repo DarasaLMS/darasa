@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from apps.core.models import BaseModel
 from apps.accounts.models import User
-from apps.classrooms.models import Course
+from apps.schools.models import Course
 
 
 class Feedback(BaseModel):

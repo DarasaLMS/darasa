@@ -1,5 +1,11 @@
 from django.urls import include, re_path
 from .views import (
+    SchoolCreateAPIView,
+    SchoolListAPIView,
+    SchoolRetrieveUpdateAPIView,
+    LevelCreateAPIView,
+    LevelListAPIView,
+    LevelRetrieveUpdateDestroyAPIView,
     CoursesView,
     create_course_view,
     CourseView,
@@ -20,6 +26,24 @@ from .views import (
 )
 
 urlpatterns = [
+    re_path(
+        r"^schools/create$", SchoolCreateAPIView.as_view(), name="school_create_view"
+    ),
+    re_path(r"^schools/$", SchoolListAPIView.as_view(), name="schools_list_view"),
+    re_path(
+        r"^schools/(?P<school_id>.+)/$$",
+        SchoolRetrieveUpdateAPIView.as_view(),
+        name="schools_view",
+    ),
+    re_path(
+        r"^levels/create/$", LevelCreateAPIView.as_view(), name="levels_create_view"
+    ),
+    re_path(r"^levels/$", LevelListAPIView.as_view(), name="levels_list_view"),
+    re_path(
+        r"^levels/(?P<level_id>.+)/$$",
+        LevelRetrieveUpdateDestroyAPIView.as_view(),
+        name="levels_view",
+    ),
     re_path(r"^courses/$", CoursesView.as_view()),
     re_path(r"^courses/add/$", create_course_view),
     re_path(r"^courses/(?P<course_id>.+)/requested/$", has_requested_course),

@@ -9,7 +9,7 @@ from django_countries.fields import CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.models import BaseModel
 from apps.accounts.models import User
-from apps.classrooms.models import Course
+from apps.schools.models import Course
 
 
 class Billing(BaseModel):

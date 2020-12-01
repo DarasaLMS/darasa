@@ -3,41 +3,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
-from ..models import User, Student, Teacher, EducationalStage, School
-
-
-class SchoolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = School
-        fields = "__all__"
-
-
-class MiniSchoolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = School
-        fields = ["id", "name", "logo", "color"]
-
-
-class EducationalStageSerializer(serializers.ModelSerializer):
-    school = MiniSchoolSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = EducationalStage
-        fields = ["id", "name", "description", "school"]
-
-
-class MiniStudentSerializer(serializers.ModelSerializer):
-    educational_stage = EducationalStageSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Student
-        fields = ["educational_stage"]
-
-
-class MiniTeacherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Teacher
-        fields = ["bio"]
+from apps.schools.models import Student, Teacher
+from apps.schools.api.serializers import MiniStudentSerializer, MiniTeacherSerializer
+from ..models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -163,37 +131,6 @@ class MiniUserSerializer(serializers.ModelSerializer):
         ret["first_name"] = ret["first_name"].title() if ret["first_name"] else ""
         ret["last_name"] = ret["last_name"].title() if ret["last_name"] else ""
         return ret
-
-
-class StudentSerializer(serializers.ModelSerializer):
-    user = MiniUserSerializer(many=False, read_only=True)
-    educational_stage = EducationalStageSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Student
-        fields = ["user", "educational_stage"]
-
-
-class StudentPictureSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    picture_url = serializers.SerializerMethodField("get_picture_url")
-
-    class Meta:
-        model = Student
-        fields = ["user", "educational_stage", "picture_url"]
-
-    def get_picture_url(self, obj):
-        request = self.context.get("request")
-        return request.build_absolute_uri(obj.user.picture.url)
-
-
-class TeacherSerializer(serializers.ModelSerializer):
-    user = MiniUserSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Teacher
-        fields = ["user", "bio", "verified", "verification_file"]
-        read_only_fields = ["verified", "verification_file"]
 
 
 class LoginSerializer(TokenObtainPairSerializer):
