@@ -40,12 +40,12 @@ class UserListAPIView(ListAPIView):
         properties={
             "first_name": openapi.Schema(type=openapi.TYPE_STRING),
             "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+            "title": openapi.Schema(type=openapi.TYPE_STRING),
             "email": openapi.Schema(type=openapi.TYPE_STRING),
             "password": openapi.Schema(type=openapi.TYPE_STRING),
             "role": openapi.Schema(type=openapi.TYPE_STRING),
             "accept_terms": openapi.Schema(type=openapi.TYPE_STRING),
             "certificate": openapi.Schema(type=openapi.TYPE_FILE),
-            "title": openapi.Schema(type=openapi.TYPE_STRING),
         },
     ),
 )
@@ -63,26 +63,34 @@ def create_user_view(request, *args, **kwargs):
     level_id = request.data.get("level", None)
 
     try:
-        user, user_created = User.objects.get_or_create(email=email)
-        if not user_created:
+        if not email:
+            return Response(
+                "User must have an email", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(email=email).exists():
             return Response(
                 "User account already exists!", status=status.HTTP_409_CONFLICT
             )
 
-        user.first_name = first_name
-        user.last_name = last_name
+        user = User.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            title=title,
+            role=role,
+            accepted_terms=accept_terms == "true",
+        )
+
         user.set_password(password)
-        user.role = role
-        user.accepted_terms = accept_terms == "true"
-        user.certificate = certificate
-        user.title = title
-        level = Level.objects.filter(id=level_id).first()
-        if level:
-            user.student.level = level
+
+        if role == "student":
+            user.student.level = Level.objects.filter(id=level_id).first()
             user.student.save()
 
         if role == "teacher":
             user.teacher.school = School.objects.first()
+            user.teacher.verification_file = certificate
             user.teacher.save()
 
         user.save()

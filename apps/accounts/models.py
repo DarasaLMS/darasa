@@ -98,7 +98,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(_("last name"), max_length=32, blank=True)
     nickname = models.CharField(_("display name"), max_length=32, blank=True)
     gender = models.CharField(_("gender"), max_length=8, blank=True, choices=GENDERS)
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(_("email address"), unique=True, blank=False, null=False)
     email_verified = models.BooleanField(_("email verified"), default=False)
     phone = PhoneNumberField(_("phone number"), blank=True)
     picture = ImageField(
