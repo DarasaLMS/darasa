@@ -34,8 +34,16 @@ class LevelSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "description", "school"]
 
 
+class MiniLevelSerializer(serializers.ModelSerializer):
+    school = MiniSchoolSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Level
+        fields = ["id", "name", "school"]
+
+
 class MiniStudentSerializer(serializers.ModelSerializer):
-    level = LevelSerializer(many=False, read_only=True)
+    level = MiniLevelSerializer(many=False, read_only=True)
 
     class Meta:
         model = Student
