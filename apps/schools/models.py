@@ -259,7 +259,7 @@ class Course(BaseModel):
 
 class Lesson(BaseModel):
     name = models.CharField(_("name"), max_length=255)
-    description = models.TextField(_("description"), blank=True)
+    description = models.TextField(_("description"), null=True, blank=True)
     notes = models.FileField(upload_to="notes/%Y/%m", null=True, blank=True)
     position = models.IntegerField(_("position"), default=0)
     course = models.ForeignKey(
@@ -312,7 +312,7 @@ class Classroom(BaseModel):
     # Class fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(_("name"), max_length=255)
-    description = models.TextField(_("description"), blank=True)
+    description = models.TextField(_("description"), null=True, blank=True)
     course = models.ForeignKey(
         Course,
         on_delete=models.PROTECT,
