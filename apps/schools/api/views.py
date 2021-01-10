@@ -325,6 +325,27 @@ def create_post_view(request, *args, **kwargs):
         raise exceptions.APIException(error)
 
 
+class PostView(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView,
+):
+    serializer_class = PostSerializer
+    queryset = Post.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "post_id"
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
 @swagger_auto_schema(
     method="POST",
     request_body=openapi.Schema(
