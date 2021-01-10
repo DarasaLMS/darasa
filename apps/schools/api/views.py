@@ -263,6 +263,27 @@ def create_lesson_view(request, *args, **kwargs):
         raise exceptions.APIException(error)
 
 
+class LessonView(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView,
+):
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_url_kwarg = "lesson_id"
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
 @swagger_auto_schema(
     method="POST",
     request_body=openapi.Schema(
