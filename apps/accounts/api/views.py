@@ -2,16 +2,8 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
-from rest_framework.generics import (
-    get_object_or_404,
-    ListAPIView,
-    RetrieveAPIView,
-    CreateAPIView,
-    RetrieveUpdateAPIView,
-    RetrieveUpdateDestroyAPIView,
-)
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import exceptions, permissions, status, filters, viewsets
+from rest_framework import exceptions, permissions, status, filters, viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.schools.models import School, Level
@@ -23,7 +15,7 @@ class LoginView(TokenObtainPairView):
     serializer_class = LoginSerializer
 
 
-class UserListAPIView(ListAPIView):
+class UserListAPIView(generics.ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -100,7 +92,7 @@ def create_user_view(request, *args, **kwargs):
         raise exceptions.APIException(error)
 
 
-class UserRetrieveAPIView(RetrieveAPIView):
+class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
@@ -121,7 +113,7 @@ def verify_account(request, **kwargs):
     if not token:
         raise exceptions.NotAcceptable(detail=_("Token not found!"))
 
-    verification_token = get_object_or_404(VerificationToken, token=token)
+    verification_token = generics.get_object_or_404(VerificationToken, token=token)
     if verification_token.user.check_email_verification(verification_token.token):
         verification_token.user.is_active = True
         verification_token.user.save()
@@ -164,7 +156,7 @@ def request_password_reset(request, **kwargs):
 def reset_password(request, **kwargs):
     password = request.data.get("password", None)
     token = request.data.get("token", None)
-    verification_token = get_object_or_404(PasswordResetToken, token=token)
+    verification_token = generics.get_object_or_404(PasswordResetToken, token=token)
     if not password:
         raise exceptions.ValidationError({"password": _("Password must be specified!")})
 
