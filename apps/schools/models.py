@@ -121,8 +121,9 @@ class Teacher(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True, related_name="teacher"
     )
-    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
+    position = models.CharField(max_length=256, blank=True)
     bio = models.TextField(blank=True)
+    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
     verified = models.BooleanField(default=False)
     verification_file = models.FileField(
         upload_to="verifications/%Y/%m", null=True, blank=True

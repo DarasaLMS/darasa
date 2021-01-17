@@ -66,7 +66,7 @@ class StudentAdmin(admin.ModelAdmin):
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ("user", "bio", "verified", "verification_file")
+    list_display = ("user", "position", "bio", "verified", "verification_file")
 
 
 class LessonInline(admin.TabularInline):

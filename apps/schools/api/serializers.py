@@ -1,6 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from apps.timetable.api.serializers import EventSerializer
+from apps.accounts.api.serializers import MiniUserSerializer
 from ..models import (
     School,
     Level,
@@ -34,31 +35,7 @@ class LevelSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "description", "school"]
 
 
-class MiniLevelSerializer(serializers.ModelSerializer):
-    school = MiniSchoolSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Level
-        fields = ["id", "name", "school"]
-
-
-class MiniStudentSerializer(serializers.ModelSerializer):
-    level = MiniLevelSerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Student
-        fields = ["level"]
-
-
-class MiniTeacherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Teacher
-        fields = ["bio", "school"]
-
-
 class StudentSerializer(serializers.ModelSerializer):
-    from apps.accounts.api.serializers import MiniUserSerializer
-
     user = MiniUserSerializer(many=False, read_only=True)
     level = LevelSerializer(many=False, read_only=True)
 
@@ -81,13 +58,11 @@ class StudentPictureSerializer(serializers.ModelSerializer):
 
 
 class TeacherSerializer(serializers.ModelSerializer):
-    from apps.accounts.api.serializers import MiniUserSerializer
-
     user = MiniUserSerializer(many=False, read_only=True)
 
     class Meta:
         model = Teacher
-        fields = ["user", "school", "bio", "verified", "verification_file"]
+        fields = ["user", "position", "bio", "school", "verified", "verification_file"]
         read_only_fields = ["verified", "verification_file"]
 
 
