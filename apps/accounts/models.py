@@ -14,6 +14,7 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import post_save, pre_save
 from sorl.thumbnail import ImageField
+from timezone_field import TimeZoneField
 from phonenumber_field.modelfields import PhoneNumberField
 from apps.core.tasks import send_email
 
@@ -117,6 +118,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
+    timezone = TimeZoneField(default="Africa/Nairobi")
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"

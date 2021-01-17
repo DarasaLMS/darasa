@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
+from timezone_field.rest_framework import TimeZoneSerializerField
 from apps.schools.models import Level, Student, Teacher
 from ..models import User
 
@@ -30,6 +31,7 @@ class MiniTeacherSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     student = MiniStudentSerializer(many=False, read_only=True)
     teacher = MiniTeacherSerializer(many=False, read_only=True)
+    timezone = TimeZoneSerializerField()
 
     class Meta:
         model = User
@@ -46,6 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone",
             "picture",
             "role",
+            "timezone",
             "calendar",
             "is_staff",
             "is_active",
@@ -130,6 +133,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MiniUserSerializer(serializers.ModelSerializer):
+    timezone = TimeZoneSerializerField()
+
     class Meta:
         model = User
         fields = (
@@ -142,6 +147,8 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "picture",
+            "role",
+            "timezone",
         )
 
     def to_representation(self, instance):

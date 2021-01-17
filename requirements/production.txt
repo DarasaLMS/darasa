@@ -30,7 +30,7 @@ django-fontawesome-5==1.0.18
 django-js-asset==1.2.2
 django-money==1.1
 django-phonenumber-field==4.0.0
-django-timezone-field==4.0
+django-timezone-field==4.1.1
 djangorestframework==3.11.0
 djangorestframework-simplejwt==4.4.0
 drf-yasg==1.17.1

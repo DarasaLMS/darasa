@@ -49,6 +49,7 @@ class UserAdmin(UserAdmin):
                     "gender",
                     "picture",
                     "role",
+                    "timezone",
                     "is_staff",
                     "is_active",
                 )
@@ -70,6 +71,7 @@ class UserAdmin(UserAdmin):
                     "gender",
                     "picture",
                     "role",
+                    "timezone",
                     "is_staff",
                     "is_active",
                 )

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "django_countries",
     "phonenumber_field",
     "ckeditor",
+    "timezone_field",
     "apps.core",
     "apps.accounts",
     "apps.schools",
