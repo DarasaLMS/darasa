@@ -118,7 +118,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(auto_now=False, auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
-    timezone = TimeZoneField(default="Africa/Nairobi")
+    timezone = TimeZoneField(
+        default="Africa/Nairobi", choices_display="WITH_GMT_OFFSET"
+    )
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
