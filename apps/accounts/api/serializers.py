@@ -4,14 +4,22 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
 from timezone_field.rest_framework import TimeZoneSerializerField
-from apps.schools.models import Level, Student, Teacher
+from apps.schools.models import Level, Student, Teacher, School
 from ..models import User
 
 
+class MiniSchoolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = School
+        fields = ["id", "name", "logo", "moto", "footer_text"]
+
+
 class MiniLevelSerializer(serializers.ModelSerializer):
+    school = MiniSchoolSerializer(many=False, read_only=True)
+
     class Meta:
         model = Level
-        fields = ["id", "name"]
+        fields = ["id", "name", "school"]
 
 
 class MiniStudentSerializer(serializers.ModelSerializer):
@@ -23,6 +31,8 @@ class MiniStudentSerializer(serializers.ModelSerializer):
 
 
 class MiniTeacherSerializer(serializers.ModelSerializer):
+    school = MiniSchoolSerializer(many=False, read_only=True)
+
     class Meta:
         model = Teacher
         fields = ["position", "bio", "school"]
