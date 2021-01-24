@@ -10,8 +10,9 @@ class MessageAdmin(admin.ModelAdmin):
         "to_user",
         "title",
         "description",
-        "rating",
+        "category",
         "date_modified",
     )
+    list_filter = ("category", "from_user", "to_user")
     date_hierarchy = "date_modified"
     ordering = ["-date_modified"]
