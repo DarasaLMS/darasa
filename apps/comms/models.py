@@ -45,6 +45,7 @@ class Message(BaseModel):
         _("rating"), validators=[MinValueValidator(0), MaxValueValidator(5)]
     )
 
+    # Read: https://docs.djangoproject.com/en/3.1/ref/contrib/contenttypes/#generic-relations
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
