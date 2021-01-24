@@ -8,14 +8,14 @@ from apps.schools.models import Level, Student, Teacher, School
 from ..models import User
 
 
-class MiniSchoolSerializer(serializers.ModelSerializer):
+class AccountsMiniSchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
         fields = ["id", "name", "logo", "moto", "footer_text"]
 
 
 class MiniLevelSerializer(serializers.ModelSerializer):
-    school = MiniSchoolSerializer(many=False, read_only=True)
+    school = AccountsMiniSchoolSerializer(many=False, read_only=True)
 
     class Meta:
         model = Level
@@ -31,7 +31,7 @@ class MiniStudentSerializer(serializers.ModelSerializer):
 
 
 class MiniTeacherSerializer(serializers.ModelSerializer):
-    school = MiniSchoolSerializer(many=False, read_only=True)
+    school = AccountsMiniSchoolSerializer(many=False, read_only=True)
 
     class Meta:
         model = Teacher
