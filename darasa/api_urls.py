@@ -15,8 +15,7 @@ urlpatterns = [
         include(("apps.accounts.api.urls", "accounts-api"), namespace="accounts-api"),
     ),
     re_path(
-        r"^feedback/",
-        include(("apps.feedback.api.urls", "feedback-api"), namespace="feedback-api"),
+        r"^comms/", include(("apps.comms.api.urls", "comms-api"), namespace="comms-api")
     ),
     re_path(
         r"^payments/",

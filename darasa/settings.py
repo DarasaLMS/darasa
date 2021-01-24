@@ -65,9 +65,9 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.accounts",
     "apps.schools",
-    "apps.feedback",
     "apps.payments",
     "apps.timetable",
+    "apps.comms",
 ]
 
 MIDDLEWARE = [
