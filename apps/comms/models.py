@@ -42,7 +42,7 @@ class Message(BaseModel):
         related_name="children_messages",
     )
     rating = models.PositiveSmallIntegerField(
-        _("rating"), validators=[MinValueValidator(0), MaxValueValidator(5)]
+        _("rating"), validators=[MinValueValidator(0), MaxValueValidator(5)], default=0
     )
 
     # Read: https://docs.djangoproject.com/en/3.1/ref/contrib/contenttypes/#generic-relations
