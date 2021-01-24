@@ -164,15 +164,13 @@ class Teacher(models.Model):
 
     @property
     def duration(self):
-        return 0
+        raise NotImplementedError
 
-    @property
     def feedback(self):
-        return self.feedback_set.all()
+        raise NotImplementedError
 
-    @property
     def rating(self):
-        return self.feedback.aggregate(Avg("rating"))
+        raise NotImplementedError
 
     def availability(self, datetime):
         return not self.classrooms.filter(
